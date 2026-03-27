@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "deploy:steam-eso-addons",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "set -euo pipefail\nDEST_ROOT=\"/home/mrbasa/.steam/steam/steamapps/compatdata/306130/pfx/drive_c/users/steamuser/Documents/Elder Scrolls Online/live/AddOns\"\nREPO=\"/home/mrbasa/Dev/ESO-Addons\"\nSKIP_NAMES='.shared .cursor .vscode docs scripts'\nskip_member() {\n  local d=\"$1\"\n  case \" $d \" in\n    *\"/../\"*|*\"/./\"*) return 0 ;;\n  esac\n  case \" $SKIP_NAMES \" in\n    *\" $d \"*) return 0 ;;\n  esac\n  [[ \"$d\" == .* ]] && return 0\n  return 1\n}\ncd \"$REPO\"\nfor dir in */; do\n  name=\"${dir%/}\"\n  skip_member \"$name\" && continue\n  [[ -f \"$name/manifest.txt\" ]] || continue\n  dest=\"$DEST_ROOT/$name\"\n  mkdir -p \"$dest\"\n  cp -a \"$name\"/. \"$dest/\"\ndone\necho \"Deployed add-ons with manifest.txt into $DEST_ROOT\""
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "build",
+      "type": "shell",
+      "dependsOn": ["deploy:steam-eso-addons"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

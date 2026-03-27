@@ -1,0 +1,13 @@
+{
+  "Lua.runtime.version": "Lua 5.1",
+  "Lua.workspace.library": [
+    "./.shared/eso-api-stubs/eso_api.lua"
+  ],
+  "Lua.diagnostics.globals": [
+    "LibScannerWindow",
+    "LibScannerWindowLibsPanel",
+    "LibScannerWindowVersionsPanel",
+    "LibScannerWindowVersionsPanelList",
+    "LibScannerWindowLibsPanelText"
+  ]
+}

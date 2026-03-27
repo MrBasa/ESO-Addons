@@ -1,0 +1,126 @@
+<GuiXml>
+    <Controls>
+        <!-- Template for the individual rows in the Versions list -->
+        <Control name="LibScannerVersionRow" virtual="true" mouseEnabled="true">
+            <!-- Increased height to 50 to fit the missing dependencies text -->
+            <Dimensions x="600" y="50" />
+            <Controls>
+                <Label name="$(parent)Name" font="ZoFontGame" wrapMode="ELLIPSIS">
+                    <Anchor point="TOPLEFT" offsetX="5" offsetY="5"/>
+                    <Dimensions x="280" y="20" />
+                </Label>
+                <Label name="$(parent)Status" font="ZoFontGame" wrapMode="ELLIPSIS">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="TOPRIGHT" offsetX="10" />
+                    <Dimensions x="130" y="20" />
+                </Label>
+                <Label name="$(parent)Version" font="ZoFontGame" wrapMode="ELLIPSIS">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)Status" relativePoint="TOPRIGHT" offsetX="10" />
+                    <Dimensions x="150" y="20" />
+                </Label>
+                <!-- New label for Missing Dependencies under the Addon Name -->
+                <Label name="$(parent)MissingDeps" font="ZoFontGameSmall" color="FF3333" wrapMode="ELLIPSIS">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="BOTTOMLEFT" offsetY="2" />
+                    <Dimensions x="580" y="20" />
+                </Label>
+            </Controls>
+        </Control>
+
+        <!-- Main Window -->
+        <TopLevelControl name="LibScannerWindow" hidden="true" mouseEnabled="true" movable="true" clampedToScreen="true">
+            <Dimensions x="650" y="550" />
+            <Anchor point="CENTER" />
+            <Controls>
+                <Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop" />
+                
+                <!-- Title & Close Button -->
+                <Label name="$(parent)Title" font="ZoFontWindowTitle" text="LibScanner" color="CFDCBD">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="15" />
+                </Label>
+                <Button name="$(parent)Close" inherits="ZO_CloseButton">
+                    <Anchor point="TOPRIGHT" offsetX="-15" offsetY="15" />
+                    <Scripts>
+                        <OnClick>LibScannerWindow:SetHidden(true)</OnClick>
+                    </Scripts>
+                </Button>
+
+                <!-- Navigation Tabs -->
+                <Button name="$(parent)TabLibs" inherits="ZO_DefaultButton" text="Libraries">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="55" />
+                    <Dimensions x="120" y="28" />
+                    <Scripts>
+                        <OnClick>LibScanner_SetTab("Libs")</OnClick>
+                    </Scripts>
+                </Button>
+                <Button name="$(parent)TabVersions" inherits="ZO_DefaultButton" text="Versions">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)TabLibs" relativePoint="TOPRIGHT" offsetX="10" />
+                    <Dimensions x="120" y="28" />
+                    <Scripts>
+                        <OnClick>LibScanner_SetTab("Versions")</OnClick>
+                    </Scripts>
+                </Button>
+
+                <!-- 1. Libraries Panel (Global Dependencies) -->
+                <Control name="$(parent)LibsPanel" hidden="false">
+                    <Anchor point="TOPLEFT" offsetY="95" offsetX="20" />
+                    <Anchor point="BOTTOMRIGHT" offsetX="-20" offsetY="-20" />
+                    <Controls>
+                        <Backdrop name="$(parent)ScrollBG" inherits="ZO_EditBackdrop">
+                            <AnchorFill/>
+                        </Backdrop>
+                        <TextBuffer name="$(parent)Text" font="ZoFontGame" maxHistoryLines="500" mouseEnabled="true">
+                            <Anchor point="TOPLEFT" offsetX="10" offsetY="10" />
+                            <Anchor point="BOTTOMRIGHT" offsetX="-10" offsetY="-10" />
+                        </TextBuffer>
+                    </Controls>
+                </Control>
+
+                <!-- 2. Versions Panel -->
+                <Control name="$(parent)VersionsPanel" hidden="true">
+                    <Anchor point="TOPLEFT" offsetY="95" offsetX="20" />
+                    <Anchor point="BOTTOMRIGHT" offsetX="-20" offsetY="-20" />
+                    <Controls>
+                        
+                        <!-- Sortable Headers -->
+                        <Button name="$(parent)HdrName" text="Addon Name" font="ZoFontGameBold">
+                            <Anchor point="TOPLEFT" offsetX="5" />
+                            <Dimensions x="280" y="25" />
+                            <OnInitialized>
+                                self:GetLabel():SetHorizontalAlignment(TEXT_ALIGN_LEFT)
+                            </OnInitialized>
+                            <Scripts>
+                                <OnClick>LibScanner_SortBy("name")</OnClick>
+                            </Scripts>
+                        </Button>
+                        <Button name="$(parent)HdrStatus" text="Is Up To Date?" font="ZoFontGameBold">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)HdrName" relativePoint="TOPRIGHT" offsetX="10" />
+                            <Dimensions x="130" y="25" />
+                            <OnInitialized>
+                                self:GetLabel():SetHorizontalAlignment(TEXT_ALIGN_LEFT)
+                            </OnInitialized>
+                            <Scripts>
+                                <OnClick>LibScanner_SortBy("status")</OnClick>
+                            </Scripts>
+                        </Button>
+                        <Button name="$(parent)HdrVersion" text="Author Version" font="ZoFontGameBold">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)HdrStatus" relativePoint="TOPRIGHT" offsetX="10" />
+                            <Dimensions x="150" y="25" />
+                            <OnInitialized>
+                                self:GetLabel():SetHorizontalAlignment(TEXT_ALIGN_LEFT)
+                            </OnInitialized>
+                            <Scripts>
+                                <OnClick>LibScanner_SortBy("version")</OnClick>
+                            </Scripts>
+                        </Button>
+
+                        <!-- Scrollable List Area -->
+                        <Control name="$(parent)List" inherits="ZO_ScrollList">
+                            <Anchor point="TOPLEFT" offsetY="30" />
+                            <Anchor point="BOTTOMRIGHT" />
+                        </Control>
+
+                    </Controls>
+                </Control>
+            </Controls>
+        </TopLevelControl>
+    </Controls>
+</GuiXml>

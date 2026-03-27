@@ -1,0 +1,17 @@
+{
+  "AddOnManager:GetAddOnInfo": "AddOnManager:GetAddOnInfo",
+  "AddOnManager:GetAddOnVersion": "AddOnManager:GetAddOnVersion",
+  "AddOnManager:GetAddOnNumDependencies": "AddOnManager:GetAddOnNumDependencies",
+  "AddOnManager:GetAddOnDependencyInfo": "AddOnManager:GetAddOnDependencyInfo",
+  "AddOnManager:GetNumAddOns": "AddOnManager:GetNumAddOns",
+  "EVENT_MANAGER:RegisterForEvent": "EVENT_MANAGER:RegisterForEvent",
+  "EVENT_MANAGER:UnregisterForEvent": "EVENT_MANAGER:UnregisterForEvent",
+  "EVENT_ADD_ON_LOADED": "EVENT_ADD_ON_LOADED",
+  "SLASH_COMMANDS": "SLASH_COMMANDS",
+  "ZO_ScrollList_GetDataList": "ZO_ScrollList_GetDataList",
+  "ZO_ScrollList_Clear": "ZO_ScrollList_Clear",
+  "ZO_ScrollList_CreateDataEntry": "ZO_ScrollList_CreateDataEntry",
+  "ZO_ScrollList_Commit": "ZO_ScrollList_Commit",
+  "ZO_ScrollList_AddDataType": "ZO_ScrollList_AddDataType",
+  "ZO_ScrollList": "ZO_ScrollList"
+}
