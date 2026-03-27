@@ -3,6 +3,12 @@
 Generate the machine-derived portion of .shared/eso-api-stubs/eso_api.lua from UESP
 ESO Data dumps (globals.txt + globalfuncs.txt).
 
+LuaLS: colon definitions ``function Root:Method()`` are emitted as
+``function Root.Method(self, ...)`` with ``---@param self Root`` so instance methods do not
+trigger inject-field / "reference" diagnostics. Dot-only names stay as
+``function Root.Method(...)``. When UESP lists both ``Root:Method`` and ``Root.Method``,
+a single dot+self stub is emitted.
+
 Preserves a hand-edited prefix in eso_api.lua up to the marker:
   -- ============================================================================
   -- BEGIN GENERATED ESO API STUBS
@@ -38,6 +44,20 @@ MANUAL_ASSIGN_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=")
 REPO_ROOT = Path(__file__).resolve().parent.parent
 STUB_PATH = REPO_ROOT / ".shared" / "eso-api-stubs" / "eso_api.lua"
 WIKI_MAP_PATH = REPO_ROOT / ".shared" / "eso-api-stubs" / "wiki_title_map.json"
+
+# Lua 5.1 / common stdlib roots: never emit synthetic tables for these method "roots".
+LUA51_GLOBAL_ROOT_SKIP = frozenset({
+    "string",
+    "table",
+    "math",
+    "io",
+    "os",
+    "debug",
+    "coroutine",
+    "package",
+    "_G",
+    "bit",
+})
 
 UA = "ESO-Addons-stub-generator/1.0 (+local dev)"
 
@@ -147,15 +167,104 @@ def emit_globals(names: set[str], reserved: set[str], wiki_map: dict[str, str]) 
     return lines
 
 
-def emit_functions(names: set[str], reserved: set[str], wiki_map: dict[str, str]) -> list[str]:
+def extract_method_roots(func_paths: set[str]) -> set[str]:
+    """Roots used as `Root.method` or `Root:method` in globalfuncs; LuaLS needs Root declared."""
+    roots: set[str] = set()
+    for path in func_paths:
+        if "." in path:
+            root, _, _ = path.partition(".")
+        elif ":" in path:
+            root, _, _ = path.partition(":")
+        else:
+            continue
+        if not root or root[0].isdigit():
+            continue
+        if not (root[0].isalpha() or root[0] == "_"):
+            continue
+        roots.add(root)
+    return roots
+
+
+def emit_method_table_shells(
+    roots: set[str],
+    globals_emitted: set[str],
+    reserved: set[str],
+    wiki_map: dict[str, str],
+) -> list[str]:
+    need = sorted(roots - reserved - globals_emitted - LUA51_GLOBAL_ROOT_SKIP)
     lines: list[str] = []
-    for name in sorted(names - reserved):
+    if need:
+        lines.append("-- Method namespaces (synthetic tables for LuaLS; missing from globals.txt)")
+        lines.append("")
+    for root in need:
+        see = wiki_see_line(root, wiki_map)
+        if see:
+            lines.append(see)
+        lines.append(f"---@class {root}")
+        lines.append(f"{root} = {root} or {{}}")
+        lines.append("")
+    return lines
+
+
+def expand_func_stubs_for_luals(funcs_emit: set[str]) -> list[tuple[str, str | None]]:
+    """
+    Build a sorted list of (lua_path, receiver_or_none).
+
+    UESP often lists ``Root:Method`` and ``Root.Method``. Colon entries become
+    ``Root.Method`` with receiver ``Root`` (emit ``self`` first). Dot-only entries
+    are skipped when a colon-derived stub exists for the same path. Unrecognized
+    colon shapes are emitted unchanged (receiver None, original name).
+    """
+    colon_by_dot: dict[str, str] = {}
+    passthrough: list[str] = []
+
+    for name in funcs_emit:
+        if ":" not in name:
+            passthrough.append(name)
+            continue
+        recv, _, meth = name.partition(":")
+        if not recv or not meth:
+            passthrough.append(name)
+            continue
+        if "." in meth:
+            # e.g. odd paths; keep original
+            passthrough.append(name)
+            continue
+        dot_path = f"{recv}.{meth}"
+        if not is_valid_lua_function_path(dot_path):
+            passthrough.append(name)
+            continue
+        colon_by_dot[dot_path] = recv
+
+    merged_dots = set(colon_by_dot.keys())
+    out: list[tuple[str, str | None]] = []
+
+    for name in sorted(passthrough):
         if not is_valid_lua_function_path(name):
             continue
+        if name in merged_dots:
+            continue
+        out.append((name, None))
+
+    for dot_path in sorted(merged_dots):
+        out.append((dot_path, colon_by_dot[dot_path]))
+
+    out.sort(key=lambda x: x[0])
+    return out
+
+
+def emit_functions(names: set[str], reserved: set[str], wiki_map: dict[str, str]) -> list[str]:
+    lines: list[str] = []
+    expanded = expand_func_stubs_for_luals(names - reserved)
+    for name, receiver in expanded:
         see = wiki_see_line(name, wiki_map)
         if see:
             lines.append(see)
-        lines.append(f"function {name}(...) end")
+        if receiver is not None:
+            lines.append(f"---@param self {receiver}")
+            lines.append(f"function {name}(self, ...) end")
+        else:
+            lines.append(f"function {name}(...) end")
         lines.append("")
     return lines
 
@@ -170,8 +279,9 @@ def build_generated_block(
 ) -> str:
     # Names that appear as functions in UESP are emitted as `function X(...) end` only,
     # not also as `X = nil` (avoids duplicate definitions for the same identifier).
-    globals_emit = globals_names - reserved - func_names
+    globals_emit_set = globals_names - reserved - func_names
     funcs_emit = func_names - reserved
+    method_roots = extract_method_roots(funcs_emit)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     banner = f"""--[[
   UESP ESO Data machine stubs
@@ -191,7 +301,10 @@ def build_generated_block(
         "-- Global values/constants/objects (from globals.txt)",
         "",
     ]
-    parts.extend(emit_globals(globals_emit, set(), wiki_map))
+    parts.extend(emit_globals(globals_emit_set, set(), wiki_map))
+    parts.extend(
+        emit_method_table_shells(method_roots, globals_emit_set, reserved, wiki_map)
+    )
     parts.append("-- Global functions / methods (from globalfuncs.txt)")
     parts.append("")
     parts.extend(emit_functions(funcs_emit, set(), wiki_map))
