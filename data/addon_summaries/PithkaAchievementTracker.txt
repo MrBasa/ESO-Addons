@@ -1,0 +1,15 @@
+# PithkaAchievementTracker
+
+lam_panel: no
+hook_flags: no
+lua_files: 28 xml_files: 4
+create_control_calls: 0
+
+## Slash commands
+/4m /pat /pgf
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ACHIEVEMENTS_SEARCH_RESULTS_READY EVENT_ADD_ON_LOADED EVENT_ENDLESS_DUNGEON_LEADERBOARD_DATA_RECEIVED EVENT_ENDLESS_DUNGEON_NEW_BEST_SCORE EVENT_GROUP_FINDER_APPLY_TO_GROUP_LISTING_RESULT EVENT_GROUP_FINDER_SEARCH_COMPLETE EVENT_GROUP_FINDER_SEARCH_RESULTS_READY EVENT_PLAYER_ACTIVATED EVENT_RAID_LEADERBOARD_DATA_RECEIVED

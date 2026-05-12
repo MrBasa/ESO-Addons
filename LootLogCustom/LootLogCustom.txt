@@ -1,0 +1,27 @@
+; Fork of Loot Log (ILikeMoneyEdition v02): same folder layout; distinct SavedVariables and load name.
+; Original not created by, affiliated with or sponsored by ZeniMax Media Inc.
+; https://account.elderscrollsonline.com/add-on-terms
+
+## Title: Loot Log (Custom)
+## Description: Searchable loot log (custom fork; ILikeMoneyEdition). Uses SavedVariables separate from stock LootLog.
+## Author: @code65536 (fork mrbasa)
+## Version: 4.8.3.1-fork1
+## AddOnVersion: 408031
+## APIVersion: 101046
+## SavedVariables: LootLogCustomSavedVariables LootLogCustomHistory LootLogCustomGoldHistory
+## DependsOn: LibExtendedJournal>=203031 LibPrice>=70470
+## OptionalDependsOn: LibCharacterKnowledge>=200000 LibMultiAccountCollectibles>=1 LibMultiAccountSets>=9 LibAddonMenu-2.0
+
+l10n/default.lua
+l10n/$(language).lua
+
+LootLog.lua
+LootLog.xml
+History.lua
+Mats.lua
+Gold.lua
+LootLogMulti.lua
+LootLogTrade.lua
+TreasureMapLeads.lua
+Tooltip.lua
+Bindings.xml

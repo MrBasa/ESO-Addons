@@ -1,0 +1,15 @@
+# BanditsCompanions
+
+lam_panel: no
+hook_flags: no
+lua_files: 12 xml_files: 1
+create_control_calls: 0
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ACTION_LAYER_POPPED EVENT_ACTION_LAYER_PUSHED EVENT_ADD_ON_LOADED EVENT_GROUP_MEMBER_JOINED EVENT_GROUP_MEMBER_LEFT EVENT_PLAYER_ACTIVATED EVENT_POWER_UPDATE EVENT_UNIT_ATTRIBUTE_VISUAL_ADDED EVENT_UNIT_ATTRIBUTE_VISUAL_REMOVED EVENT_UNIT_ATTRIBUTE_VISUAL_UPDATED EVENT_UNIT_CREATED

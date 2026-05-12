@@ -1,0 +1,15 @@
+# CharacterKnowledge
+
+lam_panel: yes
+hook_flags: yes
+lua_files: 36 xml_files: 4
+create_control_calls: 2
+
+## Slash commands
+/lckstyles
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_CRAFTED_ABILITY_LOCK_STATE_CHANGED EVENT_CRAFTED_ABILITY_SCRIPT_LOCK_STATE_CHANGED EVENT_MULTIPLE_RECIPES_LEARNED EVENT_PLAYER_ACTIVATED EVENT_RECIPE_LEARNED EVENT_STYLE_LEARNED

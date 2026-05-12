@@ -1,0 +1,15 @@
+# DolgubonsLazyWritCreator
+
+lam_panel: yes
+hook_flags: yes
+lua_files: 28 xml_files: 3
+create_control_calls: 2
+
+## Slash commands
+/abandonwrits /console /countsurveys /countunearnedvouchers /craftitems /dailyreset /dcsbar /displaychangelog /dlwcdebug /dlwcstatwindowdebug /dolgubonlazywritstats /dstat /findwrit /gamepad /lang /lazywritstats /libstubwarning /listquest /loothirelings /noclaim /outputwritchances /outputwritstats /quit /rerunmasterwrits /resetchangelog /resetchangelog2 /resetcheeseprogress /resetcheeseprogresscomplete /resetwelcome /resetwritcraftersettings /resetwritstatistics /senddebug /sendebug /testmail /testpotion /testrun /transmuteboxtotal /wcbag /writcraftertranslations /writstats
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_BATTLEGROUND_STATE_CHANGED EVENT_CHATTER_BEGIN EVENT_CHAT_MESSAGE_CHANNEL EVENT_CRAFTING_STATION_INTERACT EVENT_CRAFT_COMPLETED EVENT_END_CRAFTING_STATION_INTERACT EVENT_INVENTORY_SINGLE_SLOT_UPDATE EVENT_LOOT_CLOSED EVENT_MAIL_OPEN_MAILBOX EVENT_MAIL_READABLE EVENT_MAIL_REMOVED EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS EVENT_OBJECTIVES_UPDATED EVENT_OBJECTIVE_COMPLETED EVENT_OPEN_BANK EVENT_OPEN_STORE EVENT_PLAYER_ACTIVATED EVENT_QUEST_ADDED EVENT_QUEST_ADVANCED EVENT_QUEST_COMPLETE EVENT_QUEST_COMPLETE_DIALOG EVENT_QUEST_CONDITION_COUNTER_CHANGED EVENT_QUEST_OFFERED EVENT_QUEST_REMOVED

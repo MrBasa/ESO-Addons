@@ -1,0 +1,15 @@
+# TamrielTradeCentre
+
+lam_panel: yes
+hook_flags: no
+lua_files: 13 xml_files: 1
+create_control_calls: 0
+
+## Slash commands
+/ttc
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_CLOSE_TRADING_HOUSE EVENT_GUILD_HISTORY_CATEGORY_UPDATED EVENT_OPEN_TRADING_HOUSE EVENT_TRADING_HOUSE_CONFIRM_ITEM_PURCHASE EVENT_TRADING_HOUSE_RESPONSE_RECEIVED

@@ -1,0 +1,15 @@
+# VotansImprovedLocations
+
+lam_panel: no
+hook_flags: no
+lua_files: 8 xml_files: 2
+create_control_calls: 0
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+(none detected)

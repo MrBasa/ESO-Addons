@@ -1,0 +1,15 @@
+# PotionMaker
+
+lam_panel: no
+hook_flags: yes
+lua_files: 11 xml_files: 2
+create_control_calls: 7
+
+## Slash commands
+/potionmaker
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_CRAFTING_STATION_INTERACT EVENT_CRAFT_COMPLETED EVENT_END_CRAFTING_STATION_INTERACT EVENT_INVENTORY_SINGLE_SLOT_UPDATE EVENT_SKILL_XP_UPDATE

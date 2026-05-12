@@ -1,0 +1,15 @@
+# LibAddonMenuSoundSlider
+
+lam_panel: no
+hook_flags: no
+lua_files: 1 xml_files: 0
+create_control_calls: 3
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+(none detected)

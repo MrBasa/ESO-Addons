@@ -1,0 +1,15 @@
+# WritWorthy
+
+lam_panel: no
+hook_flags: yes
+lua_files: 24 xml_files: 2
+create_control_calls: 1
+
+## Slash commands
+/writworthy
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_CHATTER_BEGIN EVENT_QUEST_ADDED EVENT_QUEST_COMPLETE_DIALOG EVENT_QUEST_OFFERED event_code event_id

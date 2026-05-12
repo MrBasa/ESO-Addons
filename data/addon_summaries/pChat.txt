@@ -1,0 +1,15 @@
+# pChat
+
+lam_panel: no
+hook_flags: yes
+lua_files: 23 xml_files: 3
+create_control_calls: 0
+
+## Slash commands
+/cmadd /cmdel /cmlist /cmwatch /msg /pchatdeleteoldsv /pchats /pchattpfr /pchattpg /pchattpgl /pchattpgm /pchattpp /pchattppl /tpfr /tpg /tpgl /tpgm /tpp
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_GUILD_MEMBER_ADDED EVENT_GUILD_MEMBER_REMOVED EVENT_GUILD_SELF_JOINED_GUILD EVENT_GUILD_SELF_LEFT_GUILD EVENT_PLAYER_ACTIVATED

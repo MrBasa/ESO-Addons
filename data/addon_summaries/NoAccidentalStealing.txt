@@ -1,0 +1,15 @@
+# NoAccidentalStealing
+
+lam_panel: no
+hook_flags: yes
+lua_files: 7 xml_files: 1
+create_control_calls: 1
+
+## Slash commands
+/stealtimeframe
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_PLAYER_COMBAT_STATE

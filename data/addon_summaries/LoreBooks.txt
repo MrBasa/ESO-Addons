@@ -1,0 +1,15 @@
+# LoreBooks
+
+lam_panel: no
+hook_flags: no
+lua_files: 26 xml_files: 0
+create_control_calls: 0
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_GAMEPAD_PREFERRED_MODE_CHANGED EVENT_LORE_BOOK_LEARNED

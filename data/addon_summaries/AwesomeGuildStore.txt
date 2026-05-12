@@ -1,0 +1,15 @@
+# AwesomeGuildStore
+
+lam_panel: yes
+hook_flags: yes
+lua_files: 93 xml_files: 4
+create_control_calls: 4
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+event

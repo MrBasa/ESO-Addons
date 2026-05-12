@@ -1,0 +1,15 @@
+# LibMapData
+
+lam_panel: no
+hook_flags: yes
+lua_files: 2 xml_files: 0
+create_control_calls: 0
+
+## Slash commands
+/lmdgetpos
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_CLIENT_INTERACT_RESULT EVENT_LINKED_WORLD_POSITION_CHANGED EVENT_PLAYER_ACTIVATED EVENT_PLAYER_DEACTIVATED EVENT_PREPARE_FOR_JUMP EVENT_QUEST_SHARED EVENT_ZONE_CHANGED

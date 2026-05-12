@@ -1,6 +1,56 @@
+local LibScannerSavedVars
+
+local ADDON_NAME = "LibScanner"
+
 local addonData = {}
 local currentSort = "name"
 local sortAsc = true
+local libsOutputLines = {}
+local latestUnusedLibs = {}
+
+local function RefreshLibsOutput()
+    local outputControl = _G["LibScannerWindowLibsPanelOutput"]
+    if outputControl then
+        outputControl:SetText(table.concat(libsOutputLines, "\n"))
+    end
+end
+
+local function ClearLibsOutput()
+    libsOutputLines = {}
+    RefreshLibsOutput()
+end
+
+local function AddLibsOutputLine(line)
+    table.insert(libsOutputLines, tostring(line))
+    RefreshLibsOutput()
+end
+
+function LibScanner_CopyUnusedLibs()
+    local outputControl = _G["LibScannerWindowLibsPanelOutput"]
+    if not outputControl then
+        return
+    end
+
+    local copyLines = {"Unused Libraries (Safe to Delete):"}
+    if #latestUnusedLibs == 0 then
+        table.insert(copyLines, "None")
+    else
+        for _, libName in ipairs(latestUnusedLibs) do
+            table.insert(copyLines, libName)
+        end
+    end
+
+    outputControl:SetText(table.concat(copyLines, "\n"))
+    outputControl:TakeFocus()
+end
+
+local function AddDebugMessage(message)
+    local line = "|c9999FF[LibScanner]|r " .. tostring(message)
+    AddLibsOutputLine(line)
+    if type(d) == "function" then
+        d("[LibScanner] " .. tostring(message))
+    end
+end
 
 -- Tab Switching
 function LibScanner_SetTab(tabName)
@@ -74,7 +124,35 @@ end
 
 -- Main Scan Execution
 local function RunScan()
-    local numAddOns = AddOnManager:GetNumAddOns()
+    addonData = {}
+    ClearLibsOutput()
+
+    local getAddOnManager = rawget(_G, "GetAddOnManager")
+    AddDebugMessage("type(GetAddOnManager)=" .. tostring(type(getAddOnManager)))
+    if type(getAddOnManager) ~= "function" then
+        AddLibsOutputLine("|cFF3333Error: GetAddOnManager() unavailable.|r")
+        return
+    end
+
+    local okManager, addOnManager = pcall(getAddOnManager)
+    AddDebugMessage("GetAddOnManager() ok=" .. tostring(okManager) .. " type=" .. tostring(type(addOnManager)))
+    if not okManager then
+        AddLibsOutputLine("|cFF3333Error: GetAddOnManager() call failed.|r")
+        return
+    end
+
+    if not addOnManager then
+        AddLibsOutputLine("|cFF3333Error: AddOn manager unavailable.|r")
+        return
+    end
+
+    local okNum, numAddOnsRaw = pcall(function() return addOnManager:GetNumAddOns() end)
+    AddDebugMessage("GetNumAddOns() ok=" .. tostring(okNum) .. " value=" .. tostring(numAddOnsRaw))
+    local numAddOns = okNum and (tonumber(numAddOnsRaw) or 0) or 0
+    if numAddOns <= 0 then
+        AddLibsOutputLine("|cFF3333Error: API returned 0 addons.|r")
+        return
+    end
     local requiredLibs = {}
     local installedLibs = {}
     local missingLibs = {}
@@ -83,12 +161,9 @@ local function RunScan()
         return addonName ~= nil and string.find(string.lower(addonName), "^lib") ~= nil
     end
     
-    addonData = {}
-    LibScannerWindowLibsPanelText:Clear()
-
     -- Pass 1: catalog installed libraries from ESO's `isLibrary` flag.
     for i = 1, numAddOns do
-        local name, _, _, _, _, _, _, isLibrary = AddOnManager:GetAddOnInfo(i)
+        local name, _, _, _, _, _, _, isLibrary = addOnManager:GetAddOnInfo(i)
         if isLibrary then
             installedLibs[name] = true
         end
@@ -98,15 +173,15 @@ local function RunScan()
     -- - required libraries
     -- - missing libraries (for required deps that aren't installed)
     for i = 1, numAddOns do
-        local name, title, _, _, enabled, _, isOutOfDate, isLibrary = AddOnManager:GetAddOnInfo(i)
-        local version = AddOnManager:GetAddOnVersion(i)
+        local name, title, _, _, enabled, _, isOutOfDate, isLibrary = addOnManager:GetAddOnInfo(i)
+        local version = addOnManager:GetAddOnVersion(i)
 
         if enabled then
             local myMissingDeps = {}
-            local numDeps = AddOnManager:GetAddOnNumDependencies(i)
+            local numDeps = tonumber(addOnManager:GetAddOnNumDependencies(i)) or 0
             
             for j = 1, numDeps do
-                local depName, depExists = AddOnManager:GetAddOnDependencyInfo(i, j)
+                local depName, depExists = addOnManager:GetAddOnDependencyInfo(i, j)
                 
                 -- Record any missing dependency for this specific addon's row
                 if not depExists then
@@ -139,6 +214,7 @@ local function RunScan()
                 end
                 
                 table.insert(addonData, {
+                    folder = name,
                     name = cleanTitle,
                     status = sortStatus,
                     statusText = statusText,
@@ -157,35 +233,56 @@ local function RunScan()
         end
     end
     table.sort(unusedLibs)
+    latestUnusedLibs = unusedLibs
 
     -- Print to Libraries Panel (Global Overview)
-    LibScannerWindowLibsPanelText:AddMessage("|cFF3333--- Missing Libraries (Global) ---|r")
+    AddLibsOutputLine("|cFF3333--- Missing Libraries (Global) ---|r")
     local missingLibNames = {}
     for libName, _ in pairs(missingLibs) do
         table.insert(missingLibNames, libName)
     end
     table.sort(missingLibNames)
     if #missingLibNames == 0 then
-        LibScannerWindowLibsPanelText:AddMessage("None! All library dependencies met.")
+        AddLibsOutputLine("None! All library dependencies met.")
     else
         for _, libName in ipairs(missingLibNames) do
-            LibScannerWindowLibsPanelText:AddMessage("- " .. libName)
+            AddLibsOutputLine("- " .. libName)
         end
     end
 
-    LibScannerWindowLibsPanelText:AddMessage("\n|c33FF33--- Unused Libraries (Safe to Delete) ---|r")
+    AddLibsOutputLine("")
+    AddLibsOutputLine("|c33FF33--- Unused Libraries (Safe to Delete) ---|r")
     if #unusedLibs == 0 then
-        LibScannerWindowLibsPanelText:AddMessage("None! All installed libraries are actively used.")
+        AddLibsOutputLine("None! All installed libraries are actively used.")
     else
         for _, libName in ipairs(unusedLibs) do
-            LibScannerWindowLibsPanelText:AddMessage("- " .. libName)
+            AddLibsOutputLine("- " .. libName)
         end
     end
 
     LibScanner_RefreshList()
+
+    -- TSV for offline merge: see live/SavedVariables/LibScanner.lua → LibScannerSavedVars["lastExport"]
+    local exportLines = { "folder\ttitle\tout_of_date\tversion\tmissing_deps" }
+    for _, row in ipairs(addonData) do
+        local ood = row.status == 1 and "yes" or "no"
+        local md = row.missingDepsStr or ""
+        md = string.gsub(md, "\t", " ")
+        table.insert(
+            exportLines,
+            string.format("%s\t%s\t%s\t%s\t%s", row.folder or "", row.name or "", ood, row.version or "", md)
+        )
+    end
+    LibScannerSavedVars.lastExport = table.concat(exportLines, "\n")
+    LibScannerSavedVars.lastExportVersion = 1
 end
 
 local function Initialize()
+    LibScannerSavedVars = ZO_SavedVars:NewAccountWide("LibScannerSavedVars", 1, nil, {
+        lastExport = "",
+        lastExportVersion = 0,
+    })
+
     -- Link the XML List Template to the Lua Logic (Notice row height is now 50)
     ZO_ScrollList_AddDataType(LibScannerWindowVersionsPanelList, 1, "LibScannerVersionRow", 50, SetupRow)
     
@@ -194,12 +291,21 @@ local function Initialize()
         RunScan()
         LibScannerWindow:SetHidden(false)
     end
+
+    SLASH_COMMANDS["/libscanexport"] = function()
+        RunScan()
+        LibScannerWindow:SetHidden(false)
+        local s = LibScannerSavedVars.lastExport or ""
+        if type(d) == "function" then
+            d("[LibScanner] TSV export length=" .. tostring(string.len(s)) .. " (also in LibScannerSavedVars.lastExport ; /reloadui then open SavedVariables/LibScanner.lua)")
+        end
+    end
 end
 
 -- Wait for the addon to load before initializing
-EVENT_MANAGER:RegisterForEvent("LibScanner", EVENT_ADD_ON_LOADED, function(event, addonName)
-    if addonName == "LibScanner" then
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, function(event, addonName)
+    if addonName == ADDON_NAME then
         Initialize()
-        EVENT_MANAGER:UnregisterForEvent("LibScanner", EVENT_ADD_ON_LOADED)
+        EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
     end
 end)

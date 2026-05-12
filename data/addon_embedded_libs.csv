@@ -1,0 +1,10 @@
+parent_folder,embedded_lib_folder
+CharacterKnowledge,LibCharacterKnowledge
+CharacterKnowledge,LibExtendedJournal
+CombatAlerts,LibCombatAlerts
+DolgubonsLazyWritCreator,Libs
+EssentialHousingTools,libs
+HarvestMap,Libs
+LootLog,LibExtendedJournal
+MasterMerchant,Libs
+RaidNotifier,libs

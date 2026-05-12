@@ -1,0 +1,15 @@
+# AdvancedFilters
+
+lam_panel: yes
+hook_flags: yes
+lua_files: 20 xml_files: 1
+create_control_calls: 3
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_CLOSE_BANK EVENT_CLOSE_GUILD_BANK EVENT_CRAFT_COMPLETED EVENT_CRAFT_FAILED EVENT_END_CRAFTING_STATION_INTERACT EVENT_OPEN_BANK EVENT_OPEN_GUILD_BANK EVENT_PLAYER_ACTIVATED EVENT_STABLE_INTERACT_END

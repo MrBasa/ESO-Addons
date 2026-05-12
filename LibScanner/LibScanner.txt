@@ -1,8 +1,9 @@
 ## Title: LibScanner
 ## Author: Gemini
-## Version: 2.1
+## Version: 2.2
 ## APIVersion: 101049
 ## Description: Scans for missing/unused dependencies and outputs addon status in a UI window.
+## SavedVariables: LibScannerSavedVars
 
 LibScanner.xml
 LibScanner.lua

@@ -1,0 +1,15 @@
+# LibSavedVars
+
+lam_panel: no
+hook_flags: yes
+lua_files: 10 xml_files: 0
+create_control_calls: 0
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+PTS version
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED

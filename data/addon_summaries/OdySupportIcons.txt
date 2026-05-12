@@ -1,0 +1,15 @@
+# OdySupportIcons
+
+lam_panel: yes
+hook_flags: no
+lua_files: 14 xml_files: 1
+create_control_calls: 0
+
+## Slash commands
+(none detected)
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+(none detected)

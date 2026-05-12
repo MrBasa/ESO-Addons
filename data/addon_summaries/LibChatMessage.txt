@@ -1,0 +1,15 @@
+# LibChatMessage
+
+lam_panel: no
+hook_flags: yes
+lua_files: 3 xml_files: 0
+create_control_calls: 0
+
+## Slash commands
+/chatmessage
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_PLAYER_ACTIVATED

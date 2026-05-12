@@ -1,0 +1,15 @@
+# LibLazyCrafting
+
+lam_panel: no
+hook_flags: no
+lua_files: 7 xml_files: 0
+create_control_calls: 0
+
+## Slash commands
+/llcsoundoff /memorycheck
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+EVENT_ADD_ON_LOADED EVENT_CRAFTING_STATION_INTERACT EVENT_CRAFT_COMPLETED EVENT_END_CRAFTING_STATION_INTERACT EVENT_INVENTORY_SINGLE_SLOT_UPDATE EVENT_PLAYER_ACTIVATED

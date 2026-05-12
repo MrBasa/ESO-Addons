@@ -1,0 +1,15 @@
+# LibScrollableMenu
+
+lam_panel: no
+hook_flags: yes
+lua_files: 18 xml_files: 1
+create_control_calls: 6
+
+## Slash commands
+/lsmdebug /lsmdebugverbose /lsmtest /lsmtest2
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+(none detected)

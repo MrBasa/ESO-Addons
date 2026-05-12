@@ -1,0 +1,15 @@
+# LibAsync
+
+lam_panel: no
+hook_flags: no
+lua_files: 2 xml_files: 0
+create_control_calls: 0
+
+## Slash commands
+/async /libasynctest /libasynctests
+
+## SavedVars names (heuristic)
+(none detected)
+
+## Event name samples (literals only, capped)
+(none detected)
