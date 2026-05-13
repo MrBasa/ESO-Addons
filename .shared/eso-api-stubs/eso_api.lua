@@ -5,15 +5,14 @@
 
 -- NOTE: ESO uses Lua 5.1 in practice; LuaLS will still parse/diagnose stubs correctly.
 
----@class AddOnInfo
----@field name string
----@field title string
----@field enabled boolean
----@field isOutOfDate boolean
----@field isLibrary boolean
+--- Add-on list rows are returned **positionally** from `AddOnManager:GetAddOnInfo` (see below). Older docs/stubs sometimes listed extra booleans; live clients commonly use **six** returns with `state` = `ADDON_STATE_*` (see `ESO-LuaAPI-RULE.md`).
 
 ---@class AddOnManager
 AddOnManager = {}
+
+---@see https://wiki.esoui.com/wiki/GetAddOnManager
+---@return AddOnManager
+function GetAddOnManager() end
 
 ---@see https://wiki.esoui.com/wiki/AddOnManager:GetNumAddOns
 ---@param self AddOnManager
@@ -21,6 +20,7 @@ AddOnManager = {}
 function AddOnManager.GetNumAddOns(self) end
 
 ---@see https://wiki.esoui.com/wiki/AddOnManager:GetAddOnInfo
+--- Live-aligned six-return pattern (e.g. LibDebugLogger): `state` is `ADDON_STATE_*` (integer).
 ---@param self AddOnManager
 ---@param index integer
 ---@return string name
@@ -28,8 +28,7 @@ function AddOnManager.GetNumAddOns(self) end
 ---@return string author
 ---@return string description
 ---@return boolean enabled
----@return boolean isOutOfDate
----@return boolean isLibrary
+---@return integer state
 function AddOnManager.GetAddOnInfo(self, index) end
 
 ---@see https://wiki.esoui.com/wiki/AddOnManager:GetAddOnVersion
@@ -45,11 +44,16 @@ function AddOnManager.GetAddOnVersion(self, index) end
 function AddOnManager.GetAddOnNumDependencies(self, index) end
 
 ---@see https://wiki.esoui.com/wiki/AddOnManager:GetAddOnDependencyInfo
+--- Live-aligned six-return pattern (ESOUI `ESOUIDocumentation.txt`): sixth value is **`isLibrary`** (boolean), not optional-vs-required.
 ---@param self AddOnManager
 ---@param index integer
 ---@param dependencyIndex integer
 ---@return string dependencyName
----@return boolean depExists
+---@return boolean dependencyExists
+---@return boolean dependencyActive
+---@return integer|string dependencyMinVersion
+---@return integer|string dependencyVersion
+---@return boolean|nil isLibrary
 function AddOnManager.GetAddOnDependencyInfo(self, index, dependencyIndex) end
 
 ---@class EventManager
@@ -121,7 +125,7 @@ ZO_ScrollList = {}
   Sources:
     https://esoapi.uesp.net/101047/globals.txt
     https://esoapi.uesp.net/101047/globalfuncs.txt
-  Your add-on ## APIVersion in manifest.txt may be newer than this dump; see .cursor/rules/ESO-LuaAPI-RULE.md.
+  Your add-on ## APIVersion in AddonFolder/AddonFolder.txt may be newer than this dump; see .cursor/rules/ESO-LuaAPI-RULE.md.
 ]]
 
 -- Global values/constants/objects (from globals.txt)

@@ -4,14 +4,15 @@ This repository is a collection of **[Elder Scrolls Online](https://www.elderscr
 
 ## Layout
 
-- Each **immediate child directory** of the repo root whose contents constitute one installable add-on (typically includes `manifest.txt` alongside `.lua` / `.xml` assets) is **one individual ESO add-on**.
+- Each **immediate child directory** of the repo root whose contents constitute one installable add-on is **one individual ESO add-on**. The manifest file **must** be named **`AddonFolderName.txt`** inside that folder (same name as the folder, e.g. [`LibScanner/LibScanner.txt`](../../LibScanner/LibScanner.txt)); the game **does not** load `manifest.txt` or other arbitrary names, so the add-on will not appear in the in-game list or run its Lua/XML.
+- Deploy/copy scripts should treat **`AddonFolder/AddonFolder.txt`** as the canonical manifest (optional `manifest.txt` in-repo is **non-runtime** legacy only—not what the client loads).
 - Shared editor/LSP assets live under `.shared/` (not an add-on).
 
 ## Lua language server
 
 ESO injects a large set of globals at runtime. Local development uses LuaLS/EmmyLua stubs so those names are not flagged as undefined:
 
-- Stub entrypoint: [`.shared/eso-api-stubs/eso_api.lua`](../../.shared/eso-api-stubs/eso_api.lua)  
+- Stub entrypoint: [`.shared/eso-api-stubs/eso_api.lua`](../../.shared/eso-api-stubs/eso_api.lua) — read the **hand-maintained prefix** (above `-- BEGIN GENERATED ESO API STUBS`) for live-aligned multi-return contracts; see [`.cursor/rules/ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md).
 - Regenerate stubs with: `python3 scripts/generate_eso_api_stubs.py` (see [`.cursor/rules/ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md)).
 
 Add-on-specific conventions and APIs belong in per-add-on Cursor rules (for example [`ESO-Libscan-RULE.md`](ESO-Libscan-RULE.md)).

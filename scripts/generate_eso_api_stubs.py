@@ -290,7 +290,7 @@ def build_generated_block(
   Sources:
     {urls[0]}
     {urls[1]}
-  Your add-on ## APIVersion in manifest.txt may be newer than this dump; see .cursor/rules/ESO-LuaAPI-RULE.md.
+  Your add-on ## APIVersion in AddonFolder/AddonFolder.txt may be newer than this dump; see .cursor/rules/ESO-LuaAPI-RULE.md.
 ]]"""
 
     parts: list[str] = [

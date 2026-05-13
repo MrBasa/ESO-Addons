@@ -5,6 +5,8 @@ CombatAlerts,LibCombatAlerts
 DolgubonsLazyWritCreator,Libs
 EssentialHousingTools,libs
 HarvestMap,Libs
+ItemBrowser,LibExtendedJournal
 LootLog,LibExtendedJournal
 MasterMerchant,Libs
 RaidNotifier,libs
+SnapShot,LibOT

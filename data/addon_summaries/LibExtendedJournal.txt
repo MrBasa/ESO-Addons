@@ -1,15 +1,15 @@
-# LibZone
+# LibExtendedJournal
 
 lam_panel: no
 hook_flags: no
-lua_files: 5 xml_files: 0
-create_control_calls: 0
+lua_files: 11 xml_files: 2
+create_control_calls: 2
 
 ## Slash commands
-/lzt
+(none detected)
 
 ## SavedVars names (heuristic)
 (none detected)
 
 ## Event name samples (literals only, capped)
-EVENT_ADD_ON_LOADED
+EVENT_ADD_ON_LOADED EVENT_PLAYER_ACTIVATED NAME

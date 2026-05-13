@@ -2,7 +2,7 @@
 
 lam_panel: yes
 hook_flags: yes
-lua_files: 16 xml_files: 1
+lua_files: 17 xml_files: 3
 create_control_calls: 0
 
 ## Slash commands
@@ -12,4 +12,4 @@ create_control_calls: 0
 (none detected)
 
 ## Event name samples (literals only, capped)
-eventId
+(none detected)

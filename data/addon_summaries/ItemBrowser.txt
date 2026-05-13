@@ -1,9 +1,9 @@
-# LibMultiAccountSets
+# ItemBrowser
 
 lam_panel: yes
-hook_flags: no
-lua_files: 9 xml_files: 0
-create_control_calls: 0
+hook_flags: yes
+lua_files: 22 xml_files: 4
+create_control_calls: 2
 
 ## Slash commands
 (none detected)

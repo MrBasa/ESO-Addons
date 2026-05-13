@@ -2,7 +2,7 @@
 
 lam_panel: no
 hook_flags: yes
-lua_files: 23 xml_files: 3
+lua_files: 24 xml_files: 3
 create_control_calls: 0
 
 ## Slash commands

@@ -55,22 +55,34 @@
 
                 <!-- 1. Libraries Panel (Global Dependencies) -->
                 <Control name="$(parent)LibsPanel" hidden="false">
+                    <OnEffectivelyShown>LibScanner_OnLibsPanelEffectivelyShown()</OnEffectivelyShown>
                     <Anchor point="TOPLEFT" offsetY="95" offsetX="20" />
                     <Anchor point="BOTTOMRIGHT" offsetX="-20" offsetY="-20" />
                     <Controls>
-                        <Button name="$(parent)CopyUnused" inherits="ZO_DefaultButton" text="Copy Unused">
+                        <Button name="$(parent)CopyUnusedChat" inherits="ZO_DefaultButton" text="Unused → chat">
                             <Anchor point="TOPRIGHT" offsetX="-10" offsetY="8" />
-                            <Dimensions x="140" y="28" />
-                            <OnClicked>LibScanner_CopyUnusedLibs()</OnClicked>
+                            <Dimensions x="118" y="26" />
+                            <OnClicked>LibScanner_CopyUnusedLibsToChat()</OnClicked>
+                        </Button>
+                        <Button name="$(parent)CopyOptionalChat" inherits="ZO_DefaultButton" text="Optional → chat">
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)CopyUnusedChat" relativePoint="TOPLEFT" offsetX="-8" offsetY="0" />
+                            <Dimensions x="118" y="26" />
+                            <OnClicked>LibScanner_CopyOptionalLibsToChat()</OnClicked>
+                        </Button>
+                        <Button name="$(parent)CopyBrokenChat" inherits="ZO_DefaultButton" text="Broken → chat">
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)CopyOptionalChat" relativePoint="TOPLEFT" offsetX="-8" offsetY="0" />
+                            <Dimensions x="118" y="26" />
+                            <OnClicked>LibScanner_CopyBrokenDepsToChat()</OnClicked>
                         </Button>
                         <Backdrop name="$(parent)ScrollBG" inherits="ZO_EditBackdrop">
                             <Anchor point="TOPLEFT" offsetY="40" />
                             <Anchor point="BOTTOMRIGHT" />
                         </Backdrop>
-                        <EditBox name="$(parent)Output" font="ZoFontGame" multiLine="true" mouseEnabled="true" maxInputChars="50000">
+                        <!-- ZO_ScrollList (same pattern as LeadList): one row per report line, native scroll bar, ResetToTop shows the start of the report. -->
+                        <Control name="$(parent)OutputList" inherits="ZO_ScrollList">
                             <Anchor point="TOPLEFT" offsetX="10" offsetY="50" />
                             <Anchor point="BOTTOMRIGHT" offsetX="-10" offsetY="-10" />
-                        </EditBox>
+                        </Control>
                     </Controls>
                 </Control>
 
@@ -107,5 +119,17 @@
                 </Control>
             </Controls>
         </TopLevelControl>
+
+        <!-- Libraries report: one virtual row per line (LeadList-style ZO_ScrollList). -->
+        <Control name="LibScannerLibReportRow" virtual="true" mouseEnabled="false">
+            <Dimensions y="22" />
+            <Anchor point="RIGHT" relativeTo="$(parent)" />
+            <Controls>
+                <Label name="$(parent)Line" font="ZoFontGame" wrapMode="ELLIPSIS">
+                    <Anchor point="TOPLEFT" offsetX="4" offsetY="2" />
+                    <Anchor point="BOTTOMRIGHT" offsetX="-4" offsetY="-2" />
+                </Label>
+            </Controls>
+        </Control>
     </Controls>
 </GuiXml>

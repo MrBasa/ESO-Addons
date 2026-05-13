@@ -15,11 +15,11 @@ Documentation pattern: every add-on listed above has a detailed subsection under
 
 These steps are the same for every add-on folder in this repository (for example [`LibScanner`](LibScanner/) or any future add-on at the repo root):
 
-1. Copy the **entire** add-on folder (the directory that contains that add-on's manifest, usually `AddonName.txt`) into your live client's **`AddOns`** directory — for example `Documents/Elder Scrolls Online/live/AddOns` on Windows, or the `live/AddOns` path your launcher uses on Linux/macOS.
+1. Copy the **entire** add-on folder into your live client's **`AddOns`** directory — for example `Documents/Elder Scrolls Online/live/AddOns` on Windows, or the `live/AddOns` path your launcher uses on Linux/macOS. The manifest **must** live at **`AddonFolder/AddonFolder.txt`** (same basename as the folder, e.g. [`LibScanner/LibScanner.txt`](LibScanner/LibScanner.txt)). The client **does not** load arbitrary names such as `manifest.txt`; if the filename does not match the folder, the add-on will not appear or run.
 2. Launch ESO and open **Settings → Add-Ons**.
 3. Enable the add-on (and satisfy any **Required dependencies** the game lists for it).
 
-Treat this like any other community add-on: one folder per add-on, names must match what the manifest expects, and libraries your add-on depends on must be installed separately.
+Treat this like any other community add-on: one folder per add-on, names must match what the manifest expects, and libraries your add-on depends on must be installed separately. Optional `manifest.txt` (or similar) in-repo is **non-runtime** documentation only unless you rename it to match the game’s rule above.
 
 ## Add-on details
 
@@ -73,11 +73,22 @@ Optional: merge LibScanner TSV after exporting in-game — copy from `LibScanner
 python3 scripts/merge_libscan_tsv.py --savedvars "$HOME/.../live/SavedVariables/LibScanner.lua"
 ```
 
-**Steam deploy.** [`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-ons that have a matching manifest. **`LootLogCustom` is currently skipped** (repo-only fork); remove it from `SKIP_NAMES` in that script when you want it deployed.
+**Steam deploy.** [`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-ons when it finds the canonical manifest **`AddonName/AddonName.txt`**. **`LootLogCustom` is currently skipped** (repo-only fork); remove it from `SKIP_NAMES` in that script when you want it deployed.
+
+### Add-on health audit (CLI)
+
+Offline check of your **live** `AddOns` and `SavedVariables` trees (manifest + folders only; no game client). Writes one **Markdown** report: missing required dependencies, missing optional **`Lib*`** dependencies only, `Lib*` roots not referenced in any manifest dep line, orphan `.lua` SavedVariables files (heuristic), stray artifacts (zips, junk paths), and nested `Lib*` folders under top-level non-`Lib` add-ons.
+
+```bash
+python3 scripts/eso_addon_health.py -o /tmp/addon_health.md
+# or: bash scripts/eso_addon_health.sh -o /tmp/addon_health.md
+```
+
+Defaults: `--addons-dir` from **`ESO_ADDONS`** or the same Steam Proton `live/AddOns` path as deploy; SavedVariables defaults to `../SavedVariables` next to that `AddOns` folder. **`--exit-zero`** avoids a non-zero exit when required deps are missing (useful in CI). Caveats are in **`python3 scripts/eso_addon_health.py --help`** (missing optional `Lib*` deps are informational; orphan lists are not safe-delete guarantees; Windows/Wine paths may differ in casing).
 
 ## Lua language server
 
-The game exposes a large global API at runtime. This repo includes a LuaLS / EmmyLua stub ([`.shared/eso-api-stubs/eso_api.lua`](.shared/eso-api-stubs/eso_api.lua)) so those globals are not reported as undefined. Editor configuration lives in [`.luarc.json`](.luarc.json).
+The game exposes a large global API at runtime. This repo includes a LuaLS / EmmyLua stub ([`.shared/eso-api-stubs/eso_api.lua`](.shared/eso-api-stubs/eso_api.lua)) so those globals are not reported as undefined. The **hand-maintained block at the top** of that file (everything above `-- BEGIN GENERATED ESO API STUBS`) documents return shapes that commonly drift from auto-generated dumps; treat it as the project’s default contract when writing or reviewing unpack patterns. Editor configuration lives in [`.luarc.json`](.luarc.json).
 
 Regenerate the machine-generated portion of the stub from UESP ESO API dumps:
 
