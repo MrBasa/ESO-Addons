@@ -1,6 +1,6 @@
 # LibCharacterKnowledge
 
-lam_panel: yes
+lam_panel: no
 hook_flags: no
 lua_files: 16 xml_files: 0
 create_control_calls: 0

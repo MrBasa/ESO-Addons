@@ -657,14 +657,42 @@ local function RunScan()
                 string.format("%s\t%s\t%s\t%s\t%s", row.folder or "", row.name or "", ood, row.version or "", md)
             )
         end
-        LibScannerSavedVars.lastExport = table.concat(exportLines, "\n")
-        LibScannerSavedVars.lastExportVersion = 1
+        -- ESO rejects SavedVariables strings longer than ~2000 chars (becomes nil).
+        -- Chunk the TSV so /libscanexport survives reload for merge_libscan_tsv.py.
+        local MAX_CHUNK = 1800
+        local full = table.concat(exportLines, "\n")
+        local chunks = {}
+        if string.len(full) <= MAX_CHUNK then
+            chunks[1] = full
+        else
+            local buf = ""
+            for i = 1, #exportLines do
+                local line = exportLines[i]
+                local candidate = (buf == "") and line or (buf .. "\n" .. line)
+                if string.len(candidate) > MAX_CHUNK and buf ~= "" then
+                    table.insert(chunks, buf)
+                    buf = line
+                else
+                    buf = candidate
+                end
+            end
+            if buf ~= "" then
+                table.insert(chunks, buf)
+            end
+        end
+        LibScannerSavedVars.lastExportChunks = chunks
+        LibScannerSavedVars.lastExportChunkCount = #chunks
+        -- Short status only in lastExport (fits SV limit); full data is in chunks.
+        LibScannerSavedVars.lastExport = string.format("chunks:%d rows:%d", #chunks, #addonData)
+        LibScannerSavedVars.lastExportVersion = 2
     end
 end
 
 local function Initialize()
     LibScannerSavedVars = ZO_SavedVars:NewAccountWide("LibScannerSavedVars", 1, nil, {
         lastExport = "",
+        lastExportChunks = {},
+        lastExportChunkCount = 0,
         lastExportVersion = 0,
         showDebug = false,
     })
@@ -691,9 +719,22 @@ local function Initialize()
             end
             return
         end
-        local s = LibScannerSavedVars.lastExport or ""
+        local chunks = LibScannerSavedVars.lastExportChunks
+        local n = (type(chunks) == "table" and #chunks) or 0
+        local total = 0
+        if n > 0 then
+            for i = 1, n do
+                total = total + string.len(chunks[i] or "")
+            end
+        end
         if type(d) == "function" then
-            d("[LibScanner] TSV export length=" .. tostring(string.len(s)) .. " (also in LibScannerSavedVars.lastExport ; /reloadui then open SavedVariables/LibScanner.lua)")
+            d(
+                "[LibScanner] TSV export chunks="
+                    .. tostring(n)
+                    .. " bytes="
+                    .. tostring(total)
+                    .. " (LibScannerSavedVars.lastExportChunks ; /reloadui then merge_libscan_tsv.py --savedvars …/LibScanner.lua)"
+            )
         end
     end
 

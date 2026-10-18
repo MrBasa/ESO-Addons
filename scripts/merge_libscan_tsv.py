@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-Merge LibScanner TSV (LibScannerSavedVars.lastExport) into data/addon_catalog.csv.
+Merge LibScanner TSV (LibScannerSavedVars.lastExport / lastExportChunks) into
+data/addon_catalog.csv.
 
-Paste the TSV into data/libscan_export.tsv or pass --tsv path.
+Paste the TSV into data/libscan_export.tsv or pass --tsv / --savedvars.
 Columns: folder, title, out_of_date, version, missing_deps
 
-Example: after /libscanexport in-game, copy lastExport from
-live/SavedVariables/LibScanner.lua into data/libscan_export.tsv, then run this.
+Example:
+  python3 scripts/merge_libscan_tsv.py \\
+    --savedvars "$HOME/Games/ESO/live/SavedVariables/LibScanner.lua"
 """
 
 from __future__ import annotations
@@ -22,8 +24,28 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def _unescape_lua_string(raw: str) -> str:
+    return bytes(raw, "utf-8").decode("unicode_escape")
+
+
 def extract_tsv_from_savedvars(lua_text: str) -> str:
-    """Best-effort: find lastExport = [[...]] or multiline string in SavedVariables Lua."""
+    """Reassemble TSV from lastExportChunks (v2) or legacy lastExport string."""
+    # Preferred: lastExportChunks = { [1] = "...", [2] = "...", }
+    chunk_block = re.search(
+        r'\["lastExportChunks"\]\s*=\s*\{(.*?)\n\s*\},',
+        lua_text,
+        re.DOTALL,
+    )
+    if chunk_block:
+        parts = re.findall(
+            r'\[\d+\]\s*=\s*"(.*?)"\s*,',
+            chunk_block.group(1),
+            re.DOTALL,
+        )
+        if parts:
+            return "\n".join(_unescape_lua_string(p) for p in parts)
+
+    # Legacy single string (often nil once >2000 chars)
     m = re.search(
         r'\["lastExport"\]\s*=\s*"(.*?)"\s*,',
         lua_text,
@@ -31,11 +53,16 @@ def extract_tsv_from_savedvars(lua_text: str) -> str:
     )
     if m:
         raw = m.group(1)
-        return bytes(raw, "utf-8").decode("unicode_escape")
-    m2 = re.search(r"\[\'lastExport\'\]\s*=\s*\"(.*?)\"\s*,", lua_text, re.DOTALL)
+        # Skip short status marker from chunked exporter
+        if raw.startswith("chunks:"):
+            return ""
+        return _unescape_lua_string(raw)
+    m2 = re.search(r"\['lastExport'\]\s*=\s*\"(.*?)\"\s*,", lua_text, re.DOTALL)
     if m2:
         raw = m2.group(1)
-        return bytes(raw, "utf-8").decode("unicode_escape")
+        if raw.startswith("chunks:"):
+            return ""
+        return _unescape_lua_string(raw)
     return ""
 
 
@@ -59,15 +86,38 @@ def main() -> int:
     sv_path = Path(args.savedvars).expanduser().resolve() if args.savedvars else None
 
     text = ""
+    source = ""
     if sv_path and sv_path.is_file():
         text = extract_tsv_from_savedvars(sv_path.read_text(encoding="utf-8", errors="replace"))
-    elif tsv_path.is_file():
-        text = tsv_path.read_text(encoding="utf-8", errors="replace")
-    else:
-        print("No TSV source found. Create data/libscan_export.tsv or pass --tsv / --savedvars", file=sys.stderr)
+        source = str(sv_path)
+    if (not text.strip()) and tsv_path.is_file():
+        candidate = tsv_path.read_text(encoding="utf-8", errors="replace")
+        # Ignore empty / header-only stubs
+        data_lines = [
+            ln
+            for ln in candidate.splitlines()
+            if ln.strip() and not ln.startswith("folder\t")
+        ]
+        if data_lines:
+            text = candidate
+            source = str(tsv_path)
+    if not text.strip() or not any(
+        ln.strip() and not ln.startswith("folder\t") for ln in text.splitlines()
+    ):
+        print(
+            "No usable TSV found.\n"
+            "  Current SavedVariables likely hit ESO's 2000-char string limit "
+            "(lastExport=nil). Redeploy LibScanner (chunked export), run "
+            "/libscanexport + /reloadui, then re-run this script with --savedvars.",
+            file=sys.stderr,
+        )
         return 1
 
-    rows_tsv = {}
+    # Always refresh data/libscan_export.tsv for inspection
+    out_tsv = repo_root() / "data" / "libscan_export.tsv"
+    out_tsv.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
+
+    rows_tsv: dict[str, dict[str, str]] = {}
     for line in text.strip().splitlines():
         parts = line.split("\t")
         if len(parts) < 3 or parts[0] == "folder":
@@ -92,7 +142,8 @@ def main() -> int:
         w.writeheader()
         w.writerows(out)
 
-    print(f"Merged LibScanner data for {len(rows_tsv)} folders into {catalog_path}")
+    print(f"Merged LibScanner data for {len(rows_tsv)} folders from {source} into {catalog_path}")
+    print(f"Wrote TSV copy -> {out_tsv}")
     return 0
 
 

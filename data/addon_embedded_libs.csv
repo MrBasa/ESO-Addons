@@ -6,6 +6,7 @@ DolgubonsLazyWritCreator,Libs
 EssentialHousingTools,libs
 HarvestMap,Libs
 ItemBrowser,LibExtendedJournal
+ItemBrowser,LibItemSets
 LootLog,LibExtendedJournal
 MasterMerchant,Libs
 RaidNotifier,libs

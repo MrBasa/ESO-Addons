@@ -2,8 +2,8 @@
 
 lam_panel: no
 hook_flags: yes
-lua_files: 18 xml_files: 1
-create_control_calls: 6
+lua_files: 19 xml_files: 1
+create_control_calls: 7
 
 ## Slash commands
 /lsmdebug /lsmdebugverbose /lsmtest /lsmtest2

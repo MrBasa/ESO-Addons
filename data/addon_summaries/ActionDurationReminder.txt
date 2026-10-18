@@ -2,11 +2,11 @@
 
 lam_panel: no
 hook_flags: no
-lua_files: 19 xml_files: 0
-create_control_calls: 0
+lua_files: 20 xml_files: 0
+create_control_calls: 2
 
 ## Slash commands
-(none detected)
+/adrlog
 
 ## SavedVars names (heuristic)
 (none detected)

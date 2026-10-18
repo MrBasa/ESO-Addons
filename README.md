@@ -15,7 +15,7 @@ Documentation pattern: every add-on listed above has a detailed subsection under
 
 These steps are the same for every add-on folder in this repository (for example [`LibScanner`](LibScanner/) or any future add-on at the repo root):
 
-1. Copy the **entire** add-on folder into your live client's **`AddOns`** directory — for example `Documents/Elder Scrolls Online/live/AddOns` on Windows, or the `live/AddOns` path your launcher uses on Linux/macOS. The manifest **must** live at **`AddonFolder/AddonFolder.txt`** (same basename as the folder, e.g. [`LibScanner/LibScanner.txt`](LibScanner/LibScanner.txt)). The client **does not** load arbitrary names such as `manifest.txt`; if the filename does not match the folder, the add-on will not appear or run.
+1. Copy the **entire** add-on folder into your live client's **`AddOns`** directory. On this Steam Proton setup the game loads **`~/Games/ESO/live/AddOns`** (also reachable as `~/.steam/steam/steamapps/compatdata/306130/pfx/drive_c/users/steamuser/Documents/Elder Scrolls Online/live/AddOns` — that `live` entry is a symlink to `~/Games/ESO/live`). The manifest **must** live at **`AddonFolder/AddonFolder.txt`** or **`AddonFolder/AddonFolder.addon`** (same basename as the folder, e.g. [`LibScanner/LibScanner.txt`](LibScanner/LibScanner.txt)). Many current ESOUI packages ship **only** `.addon`. The client **does not** load arbitrary names such as `manifest.txt`; if the filename does not match the folder, the add-on will not appear or run.
 2. Launch ESO and open **Settings → Add-Ons**.
 3. Enable the add-on (and satisfy any **Required dependencies** the game lists for it).
 
@@ -57,34 +57,39 @@ The UI has two tabs:
 | [`addon_summaries/<Folder>.txt`](data/addon_summaries) | Human-readable signal dump per add-on |
 | [`addon_embedded_libs.csv`](data/addon_embedded_libs.csv) | Nested `Lib*` under a non-lib add-on |
 | [`esoui_stub.csv`](data/esoui_stub.csv) | Fill `esoui_url` / category manually after ESOUI search |
-| [`audit_remediation.md`](data/audit_remediation.md) | Watchlist goals and enablement templates |
+| [`audit_remediation.md`](data/audit_remediation.md) | Watchlist goals and enablement steps |
+| [`addon_health_report.md`](data/addon_health_report.md) | Latest offline health Markdown (optional regenerate) |
 | [`libscan_export.tsv`](data/libscan_export.tsv) | Paste LibScanner TSV for `merge_libscan_tsv.py` |
 
-Regenerate (defaults use the same Steam Proton `live/AddOns` path as `scripts/deploy_steam_eso_addons.sh`; override with `ESO_ADDONS_DIR` / `ESO_LIVE_DIR`):
+Regenerate (defaults follow the Steam Proton `live/AddOns` path above, which resolves to `~/Games/ESO/live/AddOns`; override with `ESO_ADDONS_DIR` / `ESO_LIVE_DIR`):
 
 ```bash
 python3 scripts/catalog_addons.py
 python3 scripts/scan_addon_code.py
 ```
 
+`catalog_addons.py` recognizes **`.txt` and `.addon`** manifests and **preserves** filled `esoui_url` / `esoui_category` values in [`data/esoui_stub.csv`](data/esoui_stub.csv) across regenerations.
+
 Optional: merge LibScanner TSV after exporting in-game — copy from `LibScanner.lua` SavedVariables into `data/libscan_export.tsv` or pass `--savedvars`:
 
 ```bash
-python3 scripts/merge_libscan_tsv.py --savedvars "$HOME/.../live/SavedVariables/LibScanner.lua"
+python3 scripts/merge_libscan_tsv.py --savedvars "$HOME/Games/ESO/live/SavedVariables/LibScanner.lua"
 ```
 
-**Steam deploy.** [`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-ons when it finds the canonical manifest **`AddonName/AddonName.txt`**. **`LootLogCustom` is currently skipped** (repo-only fork); remove it from `SKIP_NAMES` in that script when you want it deployed.
+**Steam deploy.** [`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-ons (repo root is derived from the script location) when it finds **`AddonName/AddonName.txt`** or **`.addon`**. Destination defaults to the Steam Proton AddOns path; override with **`ESO_ADDONS_DIR`**. **`LootLogCustom` is currently skipped** (repo-only fork); remove it from `SKIP_NAMES` in that script when you want it deployed.
+
+**Minion (Flatpak `gg.minion.Minion`):** config `~/.var/app/gg.minion.Minion/.minion/minion.xml` — game `ESO-1` `addon-path` should stay on the Steam Proton AddOns path (symlink into `~/Games/ESO/live/AddOns`). Minion’s detector still probes `FolderName.txt`; packages that ship only `.addon` may show as undetected until reinstalled. Do not point Minion at `compatdata/306130.tmp` or `*.prewipe*` trees.
 
 ### Add-on health audit (CLI)
 
 Offline check of your **live** `AddOns` and `SavedVariables` trees (manifest + folders only; no game client). Writes one **Markdown** report: missing required dependencies, missing optional **`Lib*`** dependencies only, `Lib*` roots not referenced in any manifest dep line, orphan `.lua` SavedVariables files (heuristic), stray artifacts (zips, junk paths), and nested `Lib*` folders under top-level non-`Lib` add-ons.
 
 ```bash
-python3 scripts/eso_addon_health.py -o /tmp/addon_health.md
-# or: bash scripts/eso_addon_health.sh -o /tmp/addon_health.md
+python3 scripts/eso_addon_health.py -o data/addon_health_report.md
+# or: bash scripts/eso_addon_health.sh -o data/addon_health_report.md
 ```
 
-Defaults: `--addons-dir` from **`ESO_ADDONS`** or the same Steam Proton `live/AddOns` path as deploy; SavedVariables defaults to `../SavedVariables` next to that `AddOns` folder. **`--exit-zero`** avoids a non-zero exit when required deps are missing (useful in CI). Caveats are in **`python3 scripts/eso_addon_health.py --help`** (missing optional `Lib*` deps are informational; orphan lists are not safe-delete guarantees; Windows/Wine paths may differ in casing).
+Defaults: `--addons-dir` from **`ESO_ADDONS_DIR`** (preferred) or legacy **`ESO_ADDONS`**, else the Steam Proton `live/AddOns` path; SavedVariables defaults to `../SavedVariables` next to that `AddOns` folder. **`--exit-zero`** avoids a non-zero exit when required deps are missing (useful in CI). Caveats are in **`python3 scripts/eso_addon_health.py --help`** (missing optional `Lib*` deps are informational; orphan lists are not safe-delete guarantees; Windows/Wine paths may differ in casing).
 
 ## Lua language server
 

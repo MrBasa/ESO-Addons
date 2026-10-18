@@ -62,14 +62,23 @@ def looks_like_library(folder: str, manifest: dict[str, str]) -> bool:
 
 
 def find_manifest(addon_dir: Path) -> Path | None:
+    """Prefer FolderName.txt / FolderName.addon (PC + console-style manifests)."""
     name = addon_dir.name
-    primary = addon_dir / f"{name}.txt"
-    if primary.is_file():
-        return primary
+    for ext in (".txt", ".addon"):
+        primary = addon_dir / f"{name}{ext}"
+        if primary.is_file():
+            try:
+                head = primary.read_text(encoding="utf-8", errors="replace")[:2048]
+            except OSError:
+                continue
+            if "##" in head:
+                return primary
     alt = addon_dir / "manifest.txt"
     if alt.is_file():
         return alt
-    for p in sorted(addon_dir.glob("*.txt")):
+    for p in sorted(list(addon_dir.glob("*.txt")) + list(addon_dir.glob("*.addon"))):
+        if p.name.startswith("."):
+            continue
         try:
             head = p.read_text(encoding="utf-8", errors="replace")[:2048]
         except OSError:
@@ -233,10 +242,8 @@ def append_repo_only_addons(repo: Path, addons_root: Path, rows: list[dict[str, 
             continue
         if entry.name in SKIP_TOPLEVEL_DIRS or entry.name in seen_folders:
             continue
-        man = entry / f"{entry.name}.txt"
-        if not man.is_file():
-            man = entry / "manifest.txt"
-        if not man.is_file():
+        man = find_manifest(entry)
+        if not man:
             continue
         meta = parse_manifest(man)
         title = meta.get("Title", "")
@@ -451,21 +458,38 @@ def main() -> int:
     print(f"AddOnSettings: {settings_path} global_on={global_on} tracked_addons={len(st)}")
 
     stub = out_path.parent / "esoui_stub.csv"
+    # Preserve manually filled ESOUI URLs/categories across regenerations.
+    prev_stub: dict[str, dict[str, str]] = {}
+    if stub.is_file():
+        try:
+            with stub.open(encoding="utf-8", newline="") as sf:
+                for sr in csv.DictReader(sf):
+                    folder = (sr.get("folder") or "").strip()
+                    if not folder:
+                        continue
+                    url = (sr.get("esoui_url") or "").strip()
+                    cat = (sr.get("esoui_category") or "").strip()
+                    if url or cat:
+                        prev_stub[folder] = {"esoui_url": url, "esoui_category": cat}
+        except OSError:
+            prev_stub = {}
+
     with stub.open("w", encoding="utf-8", newline="") as f:
         sw = csv.DictWriter(f, fieldnames=["folder", "title", "esoui_url", "esoui_category"])
         sw.writeheader()
         for r in rows:
             if r.get("source") == "archive":
                 continue
+            prev = prev_stub.get(r["folder"], {})
             sw.writerow(
                 {
                     "folder": r["folder"],
                     "title": r.get("title", ""),
-                    "esoui_url": "",
-                    "esoui_category": "",
+                    "esoui_url": prev.get("esoui_url", ""),
+                    "esoui_category": prev.get("esoui_category", ""),
                 }
             )
-    print(f"Wrote ESOUI stub -> {stub}")
+    print(f"Wrote ESOUI stub -> {stub} (preserved {len(prev_stub)} filled rows)")
     return 0
 
 

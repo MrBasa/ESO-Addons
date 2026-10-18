@@ -6,7 +6,7 @@ lua_files: 1 xml_files: 1
 create_control_calls: 0
 
 ## Slash commands
-/libscan
+/libscan /libscandebug /libscanexport /scan
 
 ## SavedVars names (heuristic)
 (none detected)

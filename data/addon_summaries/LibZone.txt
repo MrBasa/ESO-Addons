@@ -2,11 +2,11 @@
 
 lam_panel: no
 hook_flags: no
-lua_files: 5 xml_files: 0
+lua_files: 4 xml_files: 0
 create_control_calls: 0
 
 ## Slash commands
-/lzt
+(none detected)
 
 ## SavedVars names (heuristic)
 (none detected)

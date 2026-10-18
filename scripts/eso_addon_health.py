@@ -10,7 +10,8 @@ Reads manifests only (no game client). Emits a single Markdown report with:
   - Embedded Lib* under top-level non-Lib add-ons
 
 Environment:
-  ESO_ADDONS     — AddOns directory (overrides default Steam Proton path)
+  ESO_ADDONS_DIR — AddOns directory (preferred; same as catalog/scan/deploy)
+  ESO_ADDONS     — legacy alias for ESO_ADDONS_DIR
 
 Caveats (see --help):
   - Optional Lib* deps missing are informational, not errors (non-Lib optional tokens are not listed in section 2).
@@ -504,9 +505,13 @@ def main() -> int:
     )
     ap.add_argument(
         "--addons-dir",
-        default=os.environ.get("ESO_ADDONS", "").strip() or str(_DEFAULT_ADDONS),
+        default=(
+            os.environ.get("ESO_ADDONS_DIR", "").strip()
+            or os.environ.get("ESO_ADDONS", "").strip()
+            or str(_DEFAULT_ADDONS)
+        ),
         type=Path,
-        help="Path to live/AddOns (default: $ESO_ADDONS or Steam Proton default)",
+        help="Path to live/AddOns (default: $ESO_ADDONS_DIR / $ESO_ADDONS or Steam Proton default)",
     )
     ap.add_argument(
         "--savedvars-dir",
