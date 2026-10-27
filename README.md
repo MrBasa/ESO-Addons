@@ -7,6 +7,7 @@ A collection of add-ons for [The Elder Scrolls Online](https://www.elderscrollso
 | Add-on | Description |
 |--------|-------------|
 | [LibScanner](LibScanner/) | Scans library dependencies and shows add-on version / dependency status in a UI window. |
+| [WritMatch](WritMatch/) | Reconciles sealed master writs with backpack gear; flags LLC/WritWorthy/Lazy Writ complete, queues leftover improvement, lists orphaned queue jobs. |
 | [LootLogCustom](LootLogCustom/) | Custom fork of Loot Log (ILikeMoneyEdition); distinct `SavedVariables` and load name `LootLogCustom`. |
 
 Documentation pattern: every add-on listed above has a detailed subsection under [Add-on details](#add-on-details). When you add a new add-on to the repo, add a table row here and a new `###` section there using the same structure as LibScanner (purpose and usage; installation is covered once below).
@@ -36,11 +37,28 @@ The UI has two tabs:
 
 **Target game build.** Declared in [`LibScanner/LibScanner.txt`](LibScanner/LibScanner.txt): `APIVersion` **101049**.
 
+### WritMatch
+
+**Purpose.** After a master-writ queue is interrupted (full bag, left the station, manual improve), WritWorthy / Lazy Writ / Master Writ Inventory Marker only show a green check if LibLazyCrafting finished the job. WritMatch scans the backpack, pairs each sealed smithing writ with a matching player-crafted piece (1:1), and updates those addons plus the LLC queue.
+
+**Usage.** After you install the folder with [Installation](#installation), enable it (requires **LibLazyCrafting**; WritWorthy and Dolgubon's Lazy Writ Crafter are optional). In chat:
+
+- **`/writmatch hold`** — turn off Lazy Writ **auto-craft** (daily generic bows/staves re-queue when you open a station) and drop every LLC craft-new job. Use this before an improve pass. **`/writmatch resume`** turns auto-craft back on.
+- **`/writmatch crafts`** — clear WritWorthy **queued** flags and drop craft-new LLC jobs (keeps improvement). Does **not** stop daily auto-craft by itself.
+- **`/writmatch queues`** — dump every LibLazyCrafting job (addon, station, type, item). Paste this if something unexpected crafts.
+- **`/writmatch kick`** — at a station, start the next improve job if LLC stopped after one.
+- **`/writmatch`** — apply: mark turn-in-ready writs complete, convert under-quality matches into **WritMatch** LLC improve jobs (and dequeue those writs from WritWorthy so they cannot craft-new again), list unmatched writs and orphaned queue rows (queued, but the sealed writ is gone).
+- **`/writmatch orphans`** — cancel those orphaned LLC jobs.
+
+Chat is grouped (Complete / Improve / Unmatched / Orphans) with clickable item links. Unmatched lines include the wanted set, item, trait, style, and quality. v1 is backpack + smithing only (blacksmith, clothier, woodworking, jewelry).
+
+**Target game build.** Declared in [`WritMatch/WritMatch.txt`](WritMatch/WritMatch.txt): `APIVersion` **101050**.
+
 ## Repository layout
 
 - **Add-on folders** — One folder per add-on at the repo root (e.g. `LibScanner/`).
-- **[`.shared/`](.shared/)** — Not an add-on. Holds editor / language-server support files, including the ESO API stub used by LuaLS.
-- **[`scripts/`](scripts/)** — Maintenance scripts (stub generation, add-on catalog / code scan).
+- **[`.shared/`](.shared/)** — Not an add-on. Holds editor / language-server support: the live-checked LuaLS prefix and vendored FlatBadger eso-api.
+- **[`scripts/`](scripts/)** — Maintenance scripts (add-on catalog / code scan, Steam deploy, FlatBadger eso-api refresh).
 - **[`data/`](data/)** — Generated audit outputs; see [Add-on catalog (audit baseline)](#add-on-catalog-audit-baseline) below.
 - **[`.vscode/`](.vscode/)** — Editor tasks and workspace settings.
 - **[`.cursor/rules/`](.cursor/rules/)** — Cursor rules for working in this repo.
@@ -93,13 +111,21 @@ Defaults: `--addons-dir` from **`ESO_ADDONS_DIR`** (preferred) or legacy **`ESO_
 
 ## Lua language server
 
-The game exposes a large global API at runtime. This repo includes a LuaLS / EmmyLua stub ([`.shared/eso-api-stubs/eso_api.lua`](.shared/eso-api-stubs/eso_api.lua)) so those globals are not reported as undefined. The **hand-maintained block at the top** of that file (everything above `-- BEGIN GENERATED ESO API STUBS`) documents return shapes that commonly drift from auto-generated dumps; treat it as the project’s default contract when writing or reviewing unpack patterns. Editor configuration lives in [`.luarc.json`](.luarc.json).
+The game exposes a large global API at runtime. This repo does **not** keep a UESP-generated dump. LuaLS uses two libraries, in this order ([`.luarc.json`](.luarc.json), Lua 5.1):
 
-Regenerate the machine-generated portion of the stub from UESP ESO API dumps:
+1. **Prefix** ([`.shared/eso-api-stubs/eso_api_prefix.lua`](.shared/eso-api-stubs/eso_api_prefix.lua)) — small hand-written overrides for live-checked arities (AddOnManager six-return `GetAddOnInfo` / `GetAddOnDependencyInfo`, `EVENT_MANAGER`, `SLASH_COMMANDS`, `ZO_ScrollList_*`). This file wins when FlatBadger disagrees. Edit it only when live ESO or an installed reference addon (LibDebugLogger, WritWorthy) disagrees.
+2. **FlatBadger eso-api** ([`.shared/eso-api/library`](.shared/eso-api/library)) — breadth plus real constant values (e.g. `CRAFTING_TYPE_WOODWORKING = 6`). Vendored from [ESOUI info4074](https://www.esoui.com/downloads/info4074-ESOluaAPIintellisenseforVisualStudioCode.html) (package `eso-api-update-51`, API near 101050–101051). See [`.shared/eso-api/SOURCE.txt`](.shared/eso-api/SOURCE.txt).
+
+The ESOUI zip **is** FlatBadger’s package (same project as GitHub; ESOUI is usually newer). After a major ESO patch, refresh the vendor:
 
 ```bash
-python3 scripts/generate_eso_api_stubs.py
+scripts/update_eso_api.sh --check
+scripts/update_eso_api.sh
 ```
+
+Cursor / VS Code task: **update:eso-api**. Do **not** add a second full API corpus. If a symbol is missing, add it to the prefix. Details: [`.cursor/rules/ESO-LuaAPI-RULE.md`](.cursor/rules/ESO-LuaAPI-RULE.md).
+
+Never invent `CRAFTING_TYPE_*` integer maps. Use the game globals or `GetString("SI_TRADESKILLTYPE", station)` after wiki + a reference addon.
 
 ## License
 

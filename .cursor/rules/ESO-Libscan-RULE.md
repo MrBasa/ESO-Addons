@@ -9,7 +9,7 @@
 
 Target runtime: **Elder Scrolls Online Update 49.0**, per [`LibScanner/LibScanner.txt`](../../LibScanner/LibScanner.txt) (`## APIVersion: 101049`; current add-on version in `## Version:` there).
 
-Global repo layout, Lua stubs, and UESP vs manifest API versions: [`ESO-Global-RULE.md`](ESO-Global-RULE.md), [`ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md).
+Global repo layout, LuaLS libraries (prefix + FlatBadger), and manifest `## APIVersion`: [`ESO-Global-RULE.md`](ESO-Global-RULE.md), [`ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md).
 
 ---
 

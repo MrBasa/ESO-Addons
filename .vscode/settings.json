@@ -1,13 +1,21 @@
 {
   "Lua.runtime.version": "Lua 5.1",
   "Lua.workspace.library": [
-    "./.shared/eso-api-stubs/eso_api.lua"
+    "./.shared/eso-api-stubs/eso_api_prefix.lua",
+    "./.shared/eso-api/library"
   ],
+  "Lua.workspace.preloadFileSize": 6000,
+  "Lua.diagnostics.libraryFiles": "Disable",
   "Lua.diagnostics.globals": [
     "LibScannerWindow",
     "LibScannerWindowLibsPanel",
     "LibScannerWindowVersionsPanel",
     "LibScannerWindowVersionsPanelList",
-    "LibScannerWindowLibsPanelText"
+    "LibScannerWindowLibsPanelText",
+    "LibLazyCrafting",
+    "LLC_CRAFT_SUCCESS",
+    "WritWorthy",
+    "WritWorthyInventoryList",
+    "WritCreater"
   ]
 }

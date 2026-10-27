@@ -437,8 +437,6 @@ local function RunScan()
         local missingLibs = {}
         local manifestReadCount = 0
 
-        local ADDON_STATE_VERSION_MISMATCH = rawget(_G, "ADDON_STATE_VERSION_MISMATCH")
-
         local function LooksLikeLibrary(addonName)
             return addonName ~= nil and string.find(string.lower(addonName), "^lib") ~= nil
         end
@@ -454,7 +452,7 @@ local function RunScan()
         -- Pass 2: versions list + problem deps; merge manifest DependsOn / OptionalDependsOn for Lib* buckets.
         for i = 1, numAddOns do
             local name, title, _, _, enabled, state = addOnManager:GetAddOnInfo(i)
-            local isOutOfDate = ADDON_STATE_VERSION_MISMATCH ~= nil and state == ADDON_STATE_VERSION_MISMATCH
+            local isOutOfDate = state == ADDON_STATE_VERSION_MISMATCH
             local version = addOnManager:GetAddOnVersion(i)
 
             if enabled then

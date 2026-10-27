@@ -10,10 +10,11 @@ This repository is a collection of **[Elder Scrolls Online](https://www.elderscr
 
 ## Lua language server
 
-ESO injects a large set of globals at runtime. Local development uses LuaLS/EmmyLua stubs so those names are not flagged as undefined:
+ESO injects a large set of globals at runtime. Local development uses LuaLS/EmmyLua libraries so those names are not flagged as undefined:
 
-- Stub entrypoint: [`.shared/eso-api-stubs/eso_api.lua`](../../.shared/eso-api-stubs/eso_api.lua) — read the **hand-maintained prefix** (above `-- BEGIN GENERATED ESO API STUBS`) for live-aligned multi-return contracts; see [`.cursor/rules/ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md).
-- Regenerate stubs with: `python3 scripts/generate_eso_api_stubs.py` (see [`.cursor/rules/ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md)).
+- **Prefix (wins on conflict):** [`.shared/eso-api-stubs/eso_api_prefix.lua`](../../.shared/eso-api-stubs/eso_api_prefix.lua) — live-checked multi-return contracts (AddOnManager six-return, `EVENT_MANAGER`, `SLASH_COMMANDS`, `ZO_ScrollList_*`).
+- **Breadth + constant values:** vendored FlatBadger [`.shared/eso-api/library`](../../.shared/eso-api/library) (e.g. `CRAFTING_TYPE_WOODWORKING = 6`).
+- Listed in that order in [`.luarc.json`](../../.luarc.json). See [`.cursor/rules/ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md). Do **not** regenerate from UESP; if a symbol is missing, add it to the prefix.
 
 Add-on-specific conventions and APIs belong in per-add-on Cursor rules (for example [`ESO-Libscan-RULE.md`](ESO-Libscan-RULE.md)).
 

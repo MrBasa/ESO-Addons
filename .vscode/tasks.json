@@ -11,6 +11,27 @@
       "problemMatcher": []
     },
     {
+      "label": "update:eso-api",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/update_eso_api.sh",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "update:eso-api (check only)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/update_eso_api.sh",
+      "args": ["--check"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "build",
       "type": "shell",
       "dependsOn": ["deploy:steam-eso-addons"],

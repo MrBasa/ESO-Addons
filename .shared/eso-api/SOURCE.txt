@@ -1,0 +1,5 @@
+Vendored FlatBadger eso-api (LuaLS / VS Code IntelliSense).
+ESOUI: https://www.esoui.com/downloads/info4074-ESOluaAPIintellisenseforVisualStudioCode.html
+Package: eso-api-update-51.zip (2026-10-04)
+GitHub (often lags ESOUI): https://github.com/Flat-Badger-1971/eso-api
+Do not regenerate from UESP. Run scripts/update_eso_api.sh after a major ESO update.
