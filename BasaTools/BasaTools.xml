@@ -1,0 +1,189 @@
+<GuiXml>
+    <Controls>
+        <TopLevelControl name="BasaToolsWindow" hidden="true" mouseEnabled="true" movable="true" clampedToScreen="true">
+            <Dimensions x="720" y="640" />
+            <Anchor point="CENTER" />
+            <Controls>
+                <Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop" />
+
+                <Label name="$(parent)Title" font="ZoFontWindowTitle" text="BasaTools" color="CFDCBD">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="15" />
+                </Label>
+                <Button name="$(parent)Close" inherits="ZO_CloseButton">
+                    <Anchor point="TOPRIGHT" offsetX="-15" offsetY="15" />
+                    <OnClicked>BasaToolsWindow:SetHidden(true)</OnClicked>
+                </Button>
+
+                <!-- Text tabs (Labels, not ZO_LabelButtonBar). That bar is icon slots; missing DDS textures render as white squares. -->
+                <Label name="$(parent)TabWritMatch" font="ZoFontHeader3" text="WritMatch" mouseEnabled="true">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="52" />
+                    <Dimensions x="130" y="28" />
+                </Label>
+                <Label name="$(parent)TabLibScanner" font="ZoFontHeader3" text="LibScanner" mouseEnabled="true">
+                    <Anchor point="TOPLEFT" offsetX="160" offsetY="52" />
+                    <Dimensions x="140" y="28" />
+                </Label>
+
+                <Label name="$(parent)NoTools" font="ZoFontGame" hidden="true" text="No custom tools loaded. Enable WritMatch and/or LibScanner, then /reloadui.">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="95" />
+                    <Dimensions x="680" y="40" />
+                </Label>
+
+                <Control name="$(parent)WritMatchPanel" hidden="false">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="95" />
+                    <Anchor point="TOPRIGHT" offsetX="-20" offsetY="95" />
+                    <Dimensions y="92" />
+                    <Controls>
+                        <Button name="$(parent)Help" inherits="ZO_DefaultButton" text="Help">
+                            <Anchor point="TOPLEFT" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_ShowHelp("WritMatch")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "What WritMatch is for and how each action works.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Reconcile" inherits="ZO_DefaultButton" text="Reconcile">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Help" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunWritMatch("reconcile")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Pair sealed backpack writs with crafted gear. Mark complete, queue leftover improves, list unmatched and orphans. Same as /writmatch.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Hold" inherits="ZO_DefaultButton" text="Hold">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Reconcile" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunWritMatch("hold")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Turn off Lazy Writ auto-craft and drop craft-new jobs so a station visit does not make daily generics.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Resume" inherits="ZO_DefaultButton" text="Resume">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Hold" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunWritMatch("resume")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Restore Lazy Writ auto-craft if Hold turned it off.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Crafts" inherits="ZO_DefaultButton" text="Crafts">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Help" relativePoint="BOTTOMLEFT" offsetY="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunWritMatch("crafts")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Clear WritWorthy queued flags and drop craft-new LLC jobs. Keeps improvement jobs. Does not stop daily auto-craft.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Queues" inherits="ZO_DefaultButton" text="Queues">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Crafts" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunWritMatch("queues")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Dump every LibLazyCrafting job (addon, station, type, item).")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Kick" inherits="ZO_DefaultButton" text="Kick">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Queues" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunWritMatch("kick")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "At a crafting station, start the next improve if LLC stopped after one.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Orphans" inherits="ZO_DefaultButton" text="Orphans">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Kick" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunWritMatch("orphans")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Cancel LLC jobs whose sealed writ is no longer in the backpack.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                    </Controls>
+                </Control>
+
+                <Control name="$(parent)LibScannerPanel" hidden="true">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="95" />
+                    <Anchor point="TOPRIGHT" offsetX="-20" offsetY="95" />
+                    <Dimensions y="92" />
+                    <Controls>
+                        <Button name="$(parent)Help" inherits="ZO_DefaultButton" text="Help">
+                            <Anchor point="TOPLEFT" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_ShowHelp("LibScanner")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "What LibScanner is for and how each action works.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Scan" inherits="ZO_DefaultButton" text="Scan">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Help" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunLibScanner("scan")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Run the dependency scan and open the LibScanner window (Versions and Libraries). Same as /libscan.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Export" inherits="ZO_DefaultButton" text="Export TSV">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Scan" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunLibScanner("export")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Scan and save a TSV snapshot to LibScanner SavedVariables for the catalog merge script. Same as /libscanexport.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Debug" inherits="ZO_DefaultButton" text="Debug">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Export" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="120" y="28" />
+                            <OnClicked>BasaTools_RunLibScanner("debug")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Toggle verbose LibScanner chat. Default is off. Same as /libscandebug.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)Open" inherits="ZO_DefaultButton" text="Open LibScanner">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Help" relativePoint="BOTTOMLEFT" offsetY="8" />
+                            <Dimensions x="160" y="28" />
+                            <OnClicked>BasaTools_RunLibScanner("open")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Show the existing LibScanner window without scanning again.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)CopyBroken" inherits="ZO_DefaultButton" text="Broken → chat">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Open" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="118" y="28" />
+                            <OnClicked>BasaTools_CopyLibScannerBucket("broken")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Copy broken-dependency folder names into the chat input line (short list for Ctrl+C).")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)CopyOptional" inherits="ZO_DefaultButton" text="Optional → chat">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)CopyBroken" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="118" y="28" />
+                            <OnClicked>BasaTools_CopyLibScannerBucket("optional")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Copy optional-only Lib* folder names into the chat input line.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                        <Button name="$(parent)CopyUnused" inherits="ZO_DefaultButton" text="Unused → chat">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)CopyOptional" relativePoint="TOPRIGHT" offsetX="8" />
+                            <Dimensions x="118" y="28" />
+                            <OnClicked>BasaTools_CopyLibScannerBucket("unused")</OnClicked>
+                            <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Copy unused Lib* folder names into the chat input line.")</OnMouseEnter>
+                            <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                        </Button>
+                    </Controls>
+                </Control>
+
+                <Label name="$(parent)OutputLabel" font="ZoFontGame" text="Output (select and copy)">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="198" />
+                </Label>
+                <Button name="$(parent)ClearOutput" inherits="ZO_DefaultButton" text="Clear">
+                    <Anchor point="TOPRIGHT" offsetX="-20" offsetY="194" />
+                    <Dimensions x="90" y="26" />
+                    <OnClicked>BasaTools_ClearOutput()</OnClicked>
+                    <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Clear the output pane.")</OnMouseEnter>
+                    <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                </Button>
+                <Button name="$(parent)CopyPane" inherits="ZO_DefaultButton" text="Copy → chat">
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)ClearOutput" relativePoint="TOPLEFT" offsetX="-8" />
+                    <Dimensions x="130" y="26" />
+                    <OnClicked>BasaTools_CopyPaneToChat()</OnClicked>
+                    <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, TOP, "Put the pane text into chat input if it is short enough. Otherwise select text in the box and Ctrl+C.")</OnMouseEnter>
+                    <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+                </Button>
+
+                <!-- Proven copy path (pChat / LibSets / LoreBooks): multiline EditBox in ZO_EditBackdrop. Not ZO_TextBuffer. -->
+                <Backdrop name="$(parent)OutputBackdrop" inherits="ZO_EditBackdrop">
+                    <Anchor point="TOPLEFT" offsetX="20" offsetY="226" />
+                    <Anchor point="BOTTOMRIGHT" offsetX="-20" offsetY="-20" />
+                    <Controls>
+                        <EditBox name="$(parent)Edit" maxInputCharacters="20000" mouseEnabled="true" inherits="ZO_DefaultEditMultiLineForBackdrop" />
+                    </Controls>
+                </Backdrop>
+            </Controls>
+        </TopLevelControl>
+    </Controls>
+</GuiXml>

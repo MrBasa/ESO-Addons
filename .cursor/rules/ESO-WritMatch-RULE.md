@@ -10,7 +10,7 @@ Global repo layout and Lua stubs: [`ESO-Global-RULE.md`](ESO-Global-RULE.md), [`
 
 ## Behaviour
 
-- Slash only: `/writmatch` applies; `/writmatch hold` turns off Lazy Writ `autoCraft` (daily generic items re-queue on station interact) and drops all LLC `type == "smithing"` jobs; `/writmatch crafts` clears WritWorthy `queued` and craft-new only; `/writmatch queues` dumps every LLC job; `/writmatch orphans` cancels LLC jobs whose sealed-writ unique id is no longer in the backpack; `/writmatch resume` restores `autoCraft` if we turned it off.
+- Slash and BasaTools panel: `/writmatch` applies; `/writmatch hold` turns off Lazy Writ `autoCraft` (daily generic items re-queue on station interact) and drops all LLC `type == "smithing"` jobs; `/writmatch crafts` clears WritWorthy `queued` and craft-new only; `/writmatch queues` dumps every LLC job; `/writmatch orphans` cancels LLC jobs whose sealed-writ unique id is no longer in the backpack; `/writmatch resume` restores `autoCraft` if we turned it off. Panel buttons call `WritMatch.Run("reconcile"|"hold"|"resume"|"crafts"|"queues"|"kick"|"orphans")`. `WritMatch.SetOutputSink(fn)` (BasaTools) also copies `Chat()` lines to the panel; chat is unchanged.
 - Smithing only (blacksmith / clothier / woodworking / jewelry). Backpack only.
 - Pairing is greedy 1:1. A match is same item id (via LLC `getItemLinkFromParticulars` at white quality), trait, and style. Quality is compared separately.
 - **Complete** (`quality >= required`): write `WritCreater.savedVarsAccountWide.craftedMasterWrits[id] = true` and `WritWorthyInventoryList.SaveChariableState(id, "completed")`, then `cancelItemByReference` on WritWorthy, Lazy Writ Master, and WritMatch LLC.

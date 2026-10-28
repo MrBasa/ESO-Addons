@@ -7,6 +7,9 @@
   "Lua.workspace.preloadFileSize": 6000,
   "Lua.diagnostics.libraryFiles": "Disable",
   "Lua.diagnostics.globals": [
+    "BasaTools",
+    "BasaToolsWindow",
+    "LibScanner",
     "LibScannerWindow",
     "LibScannerWindowLibsPanel",
     "LibScannerWindowVersionsPanel",
@@ -14,6 +17,7 @@
     "LibScannerWindowLibsPanelText",
     "LibLazyCrafting",
     "LLC_CRAFT_SUCCESS",
+    "WritMatch",
     "WritWorthy",
     "WritWorthyInventoryList",
     "WritCreater"

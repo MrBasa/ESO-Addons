@@ -80,7 +80,7 @@ Global repo layout, LuaLS libraries (prefix + FlatBadger), and manifest `## APIV
 - `GetAddOnManager()` then **`addOnManager:GetNumAddOns`**, **`GetAddOnInfo`**, **`GetAddOnVersion`**, **`GetAddOnNumDependencies`**, **`GetAddOnDependencyInfo`**, **`GetAddOnRootDirectoryPath`** (manifest paths)
 - **`io.open`** (when **`io`** exists) to read **`## DependsOn`** / **`## OptionalDependsOn`** / **`## PCDependsOn`** from `AddOnFolder.txt` / `AddOnFolder.addon` / `manifest.txt` under the root path. On standard **live** clients **`io` is `nil`**, so manifest lines are not read and the UI relies on the AddOnManager fallback plus the **WARNING** block in the Libraries report.
 - `EVENT_MANAGER:*` for `EVENT_ADD_ON_LOADED`
-- `SLASH_COMMANDS["/libscan"]`, **`/scan`** alias, **`/libscanexport`**, **`/libscandebug`**
+- `SLASH_COMMANDS["/libscan"]`, **`/scan`** alias, **`/libscanexport`**, **`/libscandebug`** — all dispatch through `LibScanner.Run("scan"|"export"|"debug")`. BasaTools also calls `Run("open")` and `LibScanner.SetOutputSink` for a short scan summary (lists stay in this window).
 - Scroll list: `ZO_ScrollList_*` for the **Versions** tab and the **Libraries** report list (`OutputList`)
 - Copy: `ZO_GetChatSystem():StartTextEntry` for **per-category comma lists** (broken / optional / unused globals)
 

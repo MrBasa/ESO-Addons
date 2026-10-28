@@ -6,6 +6,7 @@ A collection of add-ons for [The Elder Scrolls Online](https://www.elderscrollso
 
 | Add-on | Description |
 |--------|-------------|
+| [BasaTools](BasaTools/) | Control panel for *our* custom tools (WritMatch, LibScanner). Slash `/basatools`. |
 | [LibScanner](LibScanner/) | Scans library dependencies and shows add-on version / dependency status in a UI window. |
 | [WritMatch](WritMatch/) | Reconciles sealed master writs with backpack gear; flags LLC/WritWorthy/Lazy Writ complete, queues leftover improvement, lists orphaned queue jobs. |
 | [LootLogCustom](LootLogCustom/) | Custom fork of Loot Log (ILikeMoneyEdition); distinct `SavedVariables` and load name `LootLogCustom`. |
@@ -23,6 +24,21 @@ These steps are the same for every add-on folder in this repository (for example
 Treat this like any other community add-on: one folder per add-on, names must match what the manifest expects, and libraries your add-on depends on must be installed separately. Optional `manifest.txt` (or similar) in-repo is **non-runtime** documentation only unless you rename it to match the game’s rule above.
 
 ## Add-on details
+
+### BasaTools
+
+**Purpose.** One window for the custom tools in this repo (**WritMatch**, **LibScanner**). Community add-ons, the LootLogCustom fork, and repo `scripts/` are out of scope. Each tool stays in its own add-on; BasaTools only hosts buttons, help, and a shared copyable output pane.
+
+**Usage.** After you install the folder with [Installation](#installation), enable **BasaTools** plus the tools you want (they are `OptionalDependsOn`). Type **`/basatools`** to toggle the window. Header-font text tabs are omitted when that tool add-on is not loaded (selected tab uses the game selected-text color). Hover an operation button for a short tooltip.
+
+- **WritMatch** — Reconcile, Hold, Resume, Crafts, Queues, Kick, Orphans (same as `/writmatch` …). **Help** dumps usage into the pane.
+- **LibScanner** — Scan (same as `/libscan`: runs the scan and opens the existing LibScanner window), Export TSV, Debug, Open LibScanner (no re-scan), plus Broken / Optional / Unused → chat for short folder lists. **Help** dumps usage into the pane. Versions / Libraries lists stay in LibScanner’s own window.
+
+The output pane is a multiline **EditBox** (select and Ctrl+C). Item links are converted to plain names there so selection is not broken; chat still gets the original lines (including links). Long paste uses **Copy → chat** only when short enough; otherwise select in the box or use per-bucket copy.
+
+Existing slash commands (`/writmatch`, `/libscan`, `/libscanexport`, `/libscandebug`) still work.
+
+**Target game build.** Declared in [`BasaTools/BasaTools.txt`](BasaTools/BasaTools.txt): `APIVersion` **101050**.
 
 ### LibScanner
 

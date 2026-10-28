@@ -1,0 +1,10 @@
+## Title: BasaTools
+## Author: mrbasa
+## Version: 1.0.2
+## APIVersion: 101050
+## Description: Control panel for custom tools (WritMatch, LibScanner).
+## OptionalDependsOn: WritMatch LibScanner
+## SavedVariables: BasaToolsSaved
+
+BasaTools.xml
+BasaTools.lua

@@ -16,7 +16,7 @@ ESO injects a large set of globals at runtime. Local development uses LuaLS/Emmy
 - **Breadth + constant values:** vendored FlatBadger [`.shared/eso-api/library`](../../.shared/eso-api/library) (e.g. `CRAFTING_TYPE_WOODWORKING = 6`).
 - Listed in that order in [`.luarc.json`](../../.luarc.json). See [`.cursor/rules/ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md). Do **not** regenerate from UESP; if a symbol is missing, add it to the prefix.
 
-Add-on-specific conventions and APIs belong in per-add-on Cursor rules (for example [`ESO-Libscan-RULE.md`](ESO-Libscan-RULE.md)).
+Add-on-specific conventions and APIs belong in per-add-on Cursor rules (for example [`ESO-Libscan-RULE.md`](ESO-Libscan-RULE.md), [`ESO-WritMatch-RULE.md`](ESO-WritMatch-RULE.md), [`ESO-BasaTools-RULE.md`](ESO-BasaTools-RULE.md)).
 
 ## Linting (required for every task)
 

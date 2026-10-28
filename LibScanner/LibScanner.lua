@@ -2,6 +2,8 @@ local LibScannerSavedVars
 
 local ADDON_NAME = "LibScanner"
 
+LibScanner = LibScanner or {}
+
 local addonData = {}
 local currentSort = "name"
 local sortAsc = true
@@ -9,6 +11,22 @@ local libsOutputLines = {}
 local latestOptionalLibs = {}
 local latestUnusedLibs = {}
 local latestBrokenDeps = {}
+local lastManifestReadCount = 0
+
+--- Optional line sink (BasaTools). Scan lists stay in this window; status/summary go to the sink.
+local outputSink = nil
+
+function LibScanner.SetOutputSink(fn)
+    if fn == nil or type(fn) == "function" then
+        outputSink = fn
+    end
+end
+
+local function EmitStatus(msg)
+    if type(outputSink) == "function" then
+        outputSink(msg)
+    end
+end
 
 --- Split manifest dependency tokens (e.g. LibFoo>=12) into bare add-on folder names.
 local function AddManifestDependencyTokensToSet(line, set)
@@ -389,7 +407,7 @@ local function RunScan()
     if type(getAddOnManager) ~= "function" then
         AddLibsOutputLine("Error: GetAddOnManager() unavailable.", 1, 0.25, 0.25)
         LibsOutputScrollToTop()
-        return
+        return false
     end
 
     local okManager, addOnManager = pcall(getAddOnManager)
@@ -397,13 +415,13 @@ local function RunScan()
     if not okManager then
         AddLibsOutputLine("Error: GetAddOnManager() call failed.", 1, 0.25, 0.25)
         LibsOutputScrollToTop()
-        return
+        return false
     end
 
     if not addOnManager then
         AddLibsOutputLine("Error: AddOn manager unavailable.", 1, 0.25, 0.25)
         LibsOutputScrollToTop()
-        return
+        return false
     end
 
     local okNum, numAddOnsRaw = pcall(function() return addOnManager:GetNumAddOns() end)
@@ -412,7 +430,7 @@ local function RunScan()
     if numAddOns <= 0 then
         AddLibsOutputLine("Error: API returned 0 addons.", 1, 0.25, 0.25)
         LibsOutputScrollToTop()
-        return
+        return false
     end
 
     local function scanErrorHandler(err)
@@ -436,6 +454,7 @@ local function RunScan()
         local installedLibs = {}
         local missingLibs = {}
         local manifestReadCount = 0
+        lastManifestReadCount = 0
 
         local function LooksLikeLibrary(addonName)
             return addonName ~= nil and string.find(string.lower(addonName), "^lib") ~= nil
@@ -631,6 +650,7 @@ local function RunScan()
             end
         end
 
+        lastManifestReadCount = manifestReadCount
         FlushLibsReportToBuffer(reportEntries)
         LibScanner_RefreshList()
     end, scanErrorHandler)
@@ -684,6 +704,125 @@ local function RunScan()
         LibScannerSavedVars.lastExport = string.format("chunks:%d rows:%d", #chunks, #addonData)
         LibScannerSavedVars.lastExportVersion = 2
     end
+    return scanOk and true or false
+end
+
+local function EmitScanSummary()
+    EmitStatus("LibScanner scan complete.")
+    EmitStatus(string.format("  Versions: %d enabled non-Lib add-on(s).", #addonData))
+    EmitStatus(string.format("  Broken dependencies: %d.", #latestBrokenDeps))
+    if lastManifestReadCount == 0 then
+        EmitStatus("  Lib* optional-only: not classified (no manifest reads).")
+    else
+        EmitStatus(string.format("  Lib* optional-only: %d.", #latestOptionalLibs))
+    end
+    EmitStatus(string.format("  Unused Lib*: %d.", #latestUnusedLibs))
+    EmitStatus("Lists stay in the LibScanner window (Versions / Libraries).")
+    EmitStatus("Huge lists: use Broken / Optional / Unused → chat for folder names.")
+end
+
+local function ReportExport()
+    if not LibScannerSavedVars then
+        local msg = "No SavedVariables (export skipped)"
+        EmitStatus("LibScanner: " .. msg)
+        if type(d) == "function" then
+            d("[LibScanner] " .. msg)
+        end
+        return
+    end
+    local chunks = LibScannerSavedVars.lastExportChunks
+    local n = (type(chunks) == "table" and #chunks) or 0
+    local total = 0
+    if n > 0 then
+        for i = 1, n do
+            total = total + string.len(chunks[i] or "")
+        end
+    end
+    local msg = string.format(
+        "TSV export chunks=%s bytes=%s (LibScannerSavedVars.lastExportChunks ; /reloadui then merge_libscan_tsv.py --savedvars …/LibScanner.lua)",
+        tostring(n),
+        tostring(total)
+    )
+    EmitStatus("LibScanner: " .. msg)
+    if type(d) == "function" then
+        d("[LibScanner] " .. msg)
+    end
+end
+
+function LibScanner.GetHelpText()
+    return table.concat({
+        "LibScanner — scan enabled add-ons' library dependencies.",
+        "",
+        "Buttons / slash:",
+        "  Scan            — /libscan         run scan, open LibScanner window (Versions + Libraries)",
+        "  Export TSV      — /libscanexport   same scan, persist TSV in LibScannerSavedVars",
+        "  Debug           — /libscandebug    toggle verbose chat (default off)",
+        "  Open LibScanner — show the existing window without re-scanning",
+        "",
+        "Broken / Optional / Unused → chat copies a short comma-separated folder list",
+        "(do not paste the full Libraries report into chat; the client trims long payloads).",
+        "",
+        "On live clients io is nil, so manifests are not read. The Libraries tab shows a",
+        "WARNING and optional-only Lib* is not classified. Unused is then API-required only.",
+        "/scan is an alias for /libscan. Existing slash commands still work.",
+    }, "\n")
+end
+
+function LibScanner.ShowWindow()
+    if LibScannerWindow then
+        LibScannerWindow:SetHidden(false)
+        LibsOutputScrollToTopDeferred()
+    end
+end
+
+function LibScanner.CopyBucket(kind)
+    if kind == "broken" then
+        LibScanner_CopyBrokenDepsToChat()
+    elseif kind == "optional" then
+        LibScanner_CopyOptionalLibsToChat()
+    elseif kind == "unused" then
+        LibScanner_CopyUnusedLibsToChat()
+    end
+end
+
+function LibScanner.Run(op)
+    op = zo_strtrim(tostring(op or "scan"))
+    if op == "scan" then
+        local ok = RunScan()
+        LibScanner.ShowWindow()
+        if ok then
+            EmitScanSummary()
+        else
+            EmitStatus("LibScanner: scan failed. See the LibScanner window.")
+        end
+    elseif op == "export" then
+        local ok = RunScan()
+        LibScanner.ShowWindow()
+        if ok then
+            EmitScanSummary()
+        else
+            EmitStatus("LibScanner: scan failed. See the LibScanner window.")
+        end
+        ReportExport()
+    elseif op == "debug" then
+        if not LibScannerSavedVars then
+            return
+        end
+        LibScannerSavedVars.showDebug = not LibScannerSavedVars.showDebug
+        local msg = "showDebug=" .. tostring(LibScannerSavedVars.showDebug) .. " (re-run Scan / /libscan)"
+        EmitStatus("LibScanner: " .. msg)
+        if type(d) == "function" then
+            d("[LibScanner] " .. msg)
+        end
+    elseif op == "open" then
+        LibScanner.ShowWindow()
+        EmitStatus("LibScanner window opened (no new scan).")
+    else
+        EmitStatus("LibScanner: unknown op. Use scan, export, debug, or open.")
+        if type(d) == "function" then
+            d("[LibScanner] unknown op. /libscan  |  /libscanexport  |  /libscandebug")
+        end
+    end
 end
 
 local function Initialize()
@@ -700,50 +839,19 @@ local function Initialize()
 
     ZO_ScrollList_AddDataType(LibScannerWindowLibsPanelOutputList, 1, "LibScannerLibReportRow", 22, SetupLibsReportRow)
 
-    local function LibScanner_OpenAndScan()
-        RunScan()
-        LibScannerWindow:SetHidden(false)
-        LibsOutputScrollToTopDeferred()
+    SLASH_COMMANDS["/libscan"] = function()
+        LibScanner.Run("scan")
+    end
+    SLASH_COMMANDS["/scan"] = function()
+        LibScanner.Run("scan")
     end
 
-    SLASH_COMMANDS["/libscan"] = LibScanner_OpenAndScan
-    SLASH_COMMANDS["/scan"] = LibScanner_OpenAndScan
-
     SLASH_COMMANDS["/libscanexport"] = function()
-        LibScanner_OpenAndScan()
-        if not LibScannerSavedVars then
-            if type(d) == "function" then
-                d("[LibScanner] No SavedVariables (export skipped)")
-            end
-            return
-        end
-        local chunks = LibScannerSavedVars.lastExportChunks
-        local n = (type(chunks) == "table" and #chunks) or 0
-        local total = 0
-        if n > 0 then
-            for i = 1, n do
-                total = total + string.len(chunks[i] or "")
-            end
-        end
-        if type(d) == "function" then
-            d(
-                "[LibScanner] TSV export chunks="
-                    .. tostring(n)
-                    .. " bytes="
-                    .. tostring(total)
-                    .. " (LibScannerSavedVars.lastExportChunks ; /reloadui then merge_libscan_tsv.py --savedvars …/LibScanner.lua)"
-            )
-        end
+        LibScanner.Run("export")
     end
 
     SLASH_COMMANDS["/libscandebug"] = function()
-        if not LibScannerSavedVars then
-            return
-        end
-        LibScannerSavedVars.showDebug = not LibScannerSavedVars.showDebug
-        if type(d) == "function" then
-            d("[LibScanner] showDebug=" .. tostring(LibScannerSavedVars.showDebug) .. " (re-run /libscan)")
-        end
+        LibScanner.Run("debug")
     end
 end
 

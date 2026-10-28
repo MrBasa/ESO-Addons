@@ -1,7 +1,12 @@
 local ADDON_NAME = "WritMatch"
 
+WritMatch = WritMatch or {}
+
 local LLC_WW = "WritWorthy"
 local LLC_LWC_MASTER = "DolgubonsLazyWritCreatorMaster"
+
+--- Optional line sink (BasaTools). Chat always still goes to CHAT_ROUTER.
+local outputSink = nil
 
 local ownLLC = nil
 local writStationByName = nil
@@ -28,8 +33,17 @@ local function ForEachCraftingStation(fn)
     fn(CRAFTING_TYPE_JEWELRYCRAFTING)
 end
 
+function WritMatch.SetOutputSink(fn)
+    if fn == nil or type(fn) == "function" then
+        outputSink = fn
+    end
+end
+
 local function Chat(msg)
     CHAT_ROUTER:AddSystemMessage(msg)
+    if type(outputSink) == "function" then
+        outputSink(msg)
+    end
 end
 
 local function QualityName(quality)
@@ -864,29 +878,59 @@ local function CancelOrphans()
     Chat(string.format("%d orphaned LLC job(s) cancelled.", cancelled))
 end
 
-local function OnSlash(args)
-    args = zo_strtrim(args or "")
-    if args == "orphans" then
+function WritMatch.GetHelpText()
+    return table.concat({
+        "WritMatch — reconcile sealed master writs with backpack gear.",
+        "",
+        "Requires LibLazyCrafting. Optional: WritWorthy, Dolgubon's Lazy Writ Crafter.",
+        "Smithing only (blacksmith, clothier, woodworking, jewelry). Backpack only.",
+        "",
+        "Buttons / slash (/writmatch …):",
+        "  Reconcile  — /writmatch           mark complete, queue improve, list unmatched/orphans",
+        "  Hold       — /writmatch hold      turn off Lazy Writ autoCraft; drop craft-new jobs",
+        "  Resume     — /writmatch resume    restore autoCraft if we turned it off",
+        "  Crafts     — /writmatch crafts    clear WritWorthy queued + craft-new only",
+        "  Queues     — /writmatch queues    dump every LLC job",
+        "  Kick       — /writmatch kick      restart improve after LLC stalls (at a station)",
+        "  Orphans    — /writmatch orphans   cancel LLC jobs whose sealed writ is gone",
+        "",
+        "Chat keeps item links. This pane uses plain names so you can select and copy.",
+        "If LLC improves once then stops: max the station expertise passive, then Kick at the table.",
+    }, "\n")
+end
+
+function WritMatch.Run(op)
+    op = zo_strtrim(tostring(op or ""))
+    if op == "orphans" then
         CancelOrphans()
-    elseif args == "crafts" then
+    elseif op == "crafts" then
         CancelCraftNews()
-    elseif args == "hold" then
+    elseif op == "hold" then
         HoldDaily()
-    elseif args == "resume" then
+    elseif op == "resume" then
         ResumeDaily()
-    elseif args == "queues" then
+    elseif op == "queues" then
         DumpQueues()
-    elseif args == "kick" then
+    elseif op == "kick" then
         if GetCraftingInteractionType() == CRAFTING_TYPE_INVALID then
             Chat("WritMatch: interact with a station first.")
         else
             KickImprove()
             Chat("WritMatch: kicking improve queue.")
         end
-    elseif args == "" then
+    elseif op == "" or op == "reconcile" then
         Reconcile()
     else
         Chat("WritMatch: /writmatch  |  hold  |  crafts  |  queues  |  kick  |  orphans  |  resume")
+    end
+end
+
+local function OnSlash(args)
+    args = zo_strtrim(args or "")
+    if args == "" then
+        WritMatch.Run("reconcile")
+    else
+        WritMatch.Run(args)
     end
 end
 

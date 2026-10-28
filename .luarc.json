@@ -7,6 +7,9 @@
   "workspace.preloadFileSize": 6000,
   "diagnostics.libraryFiles": "Disable",
   "diagnostics.globals": [
+    "BasaTools",
+    "BasaToolsWindow",
+    "LibScanner",
     "LibScannerWindow",
     "LibScannerWindowLibsPanel",
     "LibScannerWindowVersionsPanel",
@@ -14,6 +17,7 @@
     "LibScannerWindowLibsPanelText",
     "LibLazyCrafting",
     "LLC_CRAFT_SUCCESS",
+    "WritMatch",
     "WritWorthy",
     "WritWorthyInventoryList",
     "WritCreater"
