@@ -9,6 +9,8 @@
   "Lua.diagnostics.globals": [
     "BasaTools",
     "BasaToolsWindow",
+    "BasaToolsWindowOutputBackdropList",
+    "BasaToolsWindowOutputBackdropHScroll",
     "LibScanner",
     "LibScannerWindow",
     "LibScannerWindowLibsPanel",

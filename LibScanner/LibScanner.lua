@@ -12,9 +12,18 @@ local latestOptionalLibs = {}
 local latestUnusedLibs = {}
 local latestBrokenDeps = {}
 local lastManifestReadCount = 0
+local SetupRow
 
---- Optional line sink (BasaTools). Scan lists stay in this window; status/summary go to the sink.
+--- Optional line sink (BasaTools). Status/summary go to the sink; lists render in the host UI.
 local outputSink = nil
+local host = {
+    versionsList = nil,
+    libsEdit = nil,
+    libsPanel = nil,
+    versionsPanel = nil,
+    show = nil,
+    versionsTypeReady = false,
+}
 
 function LibScanner.SetOutputSink(fn)
     if fn == nil or type(fn) == "function" then
@@ -22,9 +31,9 @@ function LibScanner.SetOutputSink(fn)
     end
 end
 
-local function EmitStatus(msg)
+local function EmitStatus(msg, r, g, b)
     if type(outputSink) == "function" then
-        outputSink(msg)
+        outputSink(msg, r, g, b)
     end
 end
 
@@ -115,6 +124,29 @@ local function SanitizeForPanelText(text)
     return s
 end
 
+local function ColorByte(x)
+    local n = math.floor((tonumber(x) or 1) * 255 + 0.5)
+    if n < 0 then
+        n = 0
+    elseif n > 255 then
+        n = 255
+    end
+    return n
+end
+
+local function ColorizeLine(text, r, g, b)
+    if type(text) ~= "string" or text == "" then
+        return text or ""
+    end
+    if ZO_ColorDef and ZO_ColorDef.New then
+        local def = ZO_ColorDef:New(r, g, b, 1)
+        if def and def.Colorize then
+            return def:Colorize(text)
+        end
+    end
+    return string.format("|cFF%02X%02X%02X%s|r", ColorByte(r), ColorByte(g), ColorByte(b), text)
+end
+
 -- ZO EditBox rich text: `|c…|r`, `|H…|h`, `[…]` etc. can truncate or eat the rest of the string.
 -- Converting `|` to `/` is NOT safe: `/c9999FF` is still treated as a color token.
 local function SanitizeForEditBox(text)
@@ -141,106 +173,91 @@ local function SanitizeForEditBox(text)
     return s
 end
 
-local function GetLibsReportList()
-    return _G["LibScannerWindowLibsPanelOutputList"]
+local function GetVersionsList()
+    return host.versionsList
 end
 
-local function SetupLibsReportRow(control, data)
-    local label = control:GetNamedChild("Line")
-    if not label then
+local function GetLibsEdit()
+    return host.libsEdit
+end
+
+local function ConfigureLibsEdit(edit)
+    if not edit then
         return
     end
-    label:SetText(type(data.text) == "string" and data.text or "")
-    local r, g, b = data.r or 1, data.g or 1, data.b or 1
-    if label.SetColor then
-        label:SetColor(r, g, b, 1)
+    if edit.SetMaxInputChars then
+        edit:SetMaxInputChars(50000)
+    end
+    if edit.SetAllowMarkupType then
+        if ALLOW_MARKUP_TYPE_COLOR_ONLY then
+            edit:SetAllowMarkupType(ALLOW_MARKUP_TYPE_COLOR_ONLY)
+        elseif ALLOW_MARKUP_TYPE_ALL then
+            edit:SetAllowMarkupType(ALLOW_MARKUP_TYPE_ALL)
+        elseif ALLOW_MARKUP_TYPE_NONE then
+            edit:SetAllowMarkupType(ALLOW_MARKUP_TYPE_NONE)
+        end
+    end
+    if edit.SetMultiLine then
+        edit:SetMultiLine(true)
+    end
+    if edit.SetEditEnabled then
+        edit:SetEditEnabled(false)
+    end
+    if edit.SetMouseEnabled then
+        edit:SetMouseEnabled(true)
     end
 end
 
----@return "scrolllist"|"none"
+local function SetLibsEditText(text)
+    local edit = GetLibsEdit()
+    if not edit or not edit.SetText then
+        return
+    end
+    ConfigureLibsEdit(edit)
+    edit:SetText(text or "")
+    if edit.SetCursorPosition then
+        edit:SetCursorPosition(0)
+    end
+end
+
+---@return "editbox"|"none"
 local function GetLibsOutputKind()
-    local c = GetLibsReportList()
-    if c and ZO_ScrollList_GetDataList then
-        return "scrolllist"
+    if GetLibsEdit() then
+        return "editbox"
     end
     return "none"
 end
 
 local function LibsOutputScrollToTop()
-    local list = GetLibsReportList()
-    if list and type(ZO_ScrollList_ResetToTop) == "function" then
-        ZO_ScrollList_ResetToTop(list)
+    local edit = GetLibsEdit()
+    if edit and edit.SetCursorPosition then
+        edit:SetCursorPosition(0)
     end
 end
 
 local function LibsOutputScrollToTopDeferred()
     LibsOutputScrollToTop()
-    if type(zo_callLater) == "function" then
-        zo_callLater(function()
-            LibsOutputScrollToTop()
-        end, 0)
-        zo_callLater(function()
-            LibsOutputScrollToTop()
-        end, 50)
-        zo_callLater(function()
-            LibsOutputScrollToTop()
-        end, 100)
-    end
-end
-
---- Called from LibScanner.xml when Libraries panel is shown (window open or tab switch to Libraries).
-function LibScanner_OnLibsPanelEffectivelyShown()
-    LibsOutputScrollToTopDeferred()
 end
 
 local function ClearLibsOutput()
     libsOutputLines = {}
-    local list = GetLibsReportList()
-    if list and type(ZO_ScrollList_Clear) == "function" then
-        ZO_ScrollList_Clear(list)
-    end
+    SetLibsEditText("")
 end
 
 local function AddLibsOutputLine(line, r, g, b)
-    r, g, b = r or 1, g or 1, b or 1
     local s = SanitizeForPanelText(line)
-    table.insert(libsOutputLines, s)
-    local list = GetLibsReportList()
-    if list and ZO_ScrollList_GetDataList and ZO_ScrollList_CreateDataEntry and ZO_ScrollList_Commit then
-        local scrollData = ZO_ScrollList_GetDataList(list)
-        table.insert(scrollData, ZO_ScrollList_CreateDataEntry(1, { text = s, r = r, g = g, b = b }))
-        ZO_ScrollList_Commit(list)
-    end
+    table.insert(libsOutputLines, ColorizeLine(s, r or 0.9, g or 0.9, b or 0.85))
+    SetLibsEditText(table.concat(libsOutputLines, "\n"))
 end
 
---- Rebuild the Libraries ZO_ScrollList from report entries (reading order). Same order as libsOutputLines for copy.
 local function FlushLibsReportToBuffer(entries)
     libsOutputLines = {}
     for i = 1, #entries do
-        table.insert(libsOutputLines, SanitizeForPanelText(entries[i].text))
-    end
-    local list = GetLibsReportList()
-    if not list or not ZO_ScrollList_Clear or not ZO_ScrollList_GetDataList or not ZO_ScrollList_CreateDataEntry or not ZO_ScrollList_Commit then
-        return
-    end
-    ZO_ScrollList_Clear(list)
-    local scrollData = ZO_ScrollList_GetDataList(list)
-    for i = 1, #entries do
         local e = entries[i]
-        table.insert(
-            scrollData,
-            ZO_ScrollList_CreateDataEntry(1, {
-                text = SanitizeForPanelText(e.text),
-                r = e.r or 1,
-                g = e.g or 1,
-                b = e.b or 1,
-            })
-        )
+        local s = SanitizeForPanelText(e.text)
+        table.insert(libsOutputLines, ColorizeLine(s, e.r or 0.9, e.g or 0.9, e.b or 0.85))
     end
-    ZO_ScrollList_Commit(list)
-    if type(ZO_ScrollList_ResetToTop) == "function" then
-        ZO_ScrollList_ResetToTop(list)
-    end
+    SetLibsEditText(table.concat(libsOutputLines, "\n"))
 end
 
 --- Put a single comma-separated line into the chat input (short payload; avoids client truncation on full reports).
@@ -321,10 +338,54 @@ local function AddDebugMessage(message)
     end
 end
 
--- Tab Switching
+function LibScanner.SetHost(spec)
+    if type(spec) ~= "table" then
+        host.versionsList = nil
+        host.libsEdit = nil
+        host.libsPanel = nil
+        host.versionsPanel = nil
+        host.show = nil
+        host.versionsTypeReady = false
+        return
+    end
+    host.versionsList = spec.versionsList
+    host.libsEdit = spec.libsEdit
+    host.libsPanel = spec.libsPanel
+    host.versionsPanel = spec.versionsPanel
+    host.show = spec.show
+    host.versionsTypeReady = false
+    ConfigureLibsEdit(host.libsEdit)
+    if host.versionsList and type(ZO_ScrollList_AddDataType) == "function" then
+        ZO_ScrollList_AddDataType(host.versionsList, 1, "LibScannerVersionRow", 50, SetupRow)
+        host.versionsTypeReady = true
+    end
+    if #addonData > 0 then
+        LibScanner_RefreshList()
+    end
+    if #libsOutputLines > 0 then
+        SetLibsEditText(table.concat(libsOutputLines, "\n"))
+    end
+end
+
+function LibScanner.SetDebug(on)
+    if not LibScannerSavedVars then
+        return
+    end
+    LibScannerSavedVars.showDebug = on and true or false
+end
+
+function LibScanner.IsDebug()
+    return LibScannerSavedVars and LibScannerSavedVars.showDebug and true or false
+end
+
+-- Tab Switching (hosted BasaTools panels)
 function LibScanner_SetTab(tabName)
-    LibScannerWindowLibsPanel:SetHidden(tabName ~= "Libs")
-    LibScannerWindowVersionsPanel:SetHidden(tabName ~= "Versions")
+    if host.libsPanel and host.libsPanel.SetHidden then
+        host.libsPanel:SetHidden(tabName ~= "Libs")
+    end
+    if host.versionsPanel and host.versionsPanel.SetHidden then
+        host.versionsPanel:SetHidden(tabName ~= "Versions")
+    end
     if tabName == "Libs" then
         LibsOutputScrollToTopDeferred()
     end
@@ -367,7 +428,7 @@ local function SortAddonData()
 end
 
 -- Bind data to the UI Row
-local function SetupRow(control, data)
+function SetupRow(control, data)
     control:GetNamedChild("Name"):SetText(data.name)
     control:GetNamedChild("Status"):SetText(data.statusText)
     control:GetNamedChild("Version"):SetText(data.version)
@@ -385,13 +446,16 @@ end
 -- Redraw the List
 function LibScanner_RefreshList()
     SortAddonData()
-    local scrollData = ZO_ScrollList_GetDataList(LibScannerWindowVersionsPanelList)
-    ZO_ScrollList_Clear(LibScannerWindowVersionsPanelList)
-    
+    local list = GetVersionsList()
+    if not list or not ZO_ScrollList_GetDataList then
+        return
+    end
+    local scrollData = ZO_ScrollList_GetDataList(list)
+    ZO_ScrollList_Clear(list)
     for _, data in ipairs(addonData) do
         table.insert(scrollData, ZO_ScrollList_CreateDataEntry(1, data))
     end
-    ZO_ScrollList_Commit(LibScannerWindowVersionsPanelList)
+    ZO_ScrollList_Commit(list)
 end
 
 -- Main Scan Execution
@@ -708,17 +772,20 @@ local function RunScan()
 end
 
 local function EmitScanSummary()
-    EmitStatus("LibScanner scan complete.")
+    EmitStatus("LibScanner scan complete.", 0.35, 0.85, 0.35)
     EmitStatus(string.format("  Versions: %d enabled non-Lib add-on(s).", #addonData))
-    EmitStatus(string.format("  Broken dependencies: %d.", #latestBrokenDeps))
-    if lastManifestReadCount == 0 then
-        EmitStatus("  Lib* optional-only: not classified (no manifest reads).")
-    else
-        EmitStatus(string.format("  Lib* optional-only: %d.", #latestOptionalLibs))
+    local br, bg, bb = 0.9, 0.9, 0.85
+    if #latestBrokenDeps > 0 then
+        br, bg, bb = 1, 0.45, 0.45
     end
-    EmitStatus(string.format("  Unused Lib*: %d.", #latestUnusedLibs))
-    EmitStatus("Lists stay in the LibScanner window (Versions / Libraries).")
-    EmitStatus("Huge lists: use Broken / Optional / Unused → chat for folder names.")
+    EmitStatus(string.format("  Broken dependencies: %d.", #latestBrokenDeps), br, bg, bb)
+    if lastManifestReadCount == 0 then
+        EmitStatus("  Lib* optional-only: not classified (no manifest reads).", 1, 0.52, 0.35)
+    else
+        EmitStatus(string.format("  Lib* optional-only: %d.", #latestOptionalLibs), 0.55, 0.82, 0.98)
+    end
+    EmitStatus(string.format("  Unused Lib*: %d.", #latestUnusedLibs), 0.35, 0.85, 0.35)
+    EmitStatus("Lists are on the LibScanner tab (Versions / Libraries). Select text in Libraries to copy.")
 end
 
 local function ReportExport()
@@ -749,30 +816,51 @@ local function ReportExport()
     end
 end
 
+function LibScanner.GetHelpEntries()
+    return {
+        intro = {
+            { text = "LibScanner — scan enabled add-ons' library dependencies." },
+            { text = "On live clients io is nil, so manifests are not read. Libraries shows a WARNING; optional-only Lib* is not classified." },
+            { text = "Select text in the Libraries report to copy. Do not paste the full report into chat." },
+            { text = "/scan is an alias for /libscan. Existing slash commands still work." },
+        },
+        rows = {
+            { action = "Scan add-ons", slash = "/libscan", effect = "Run scan and show Versions + Libraries in BasaTools" },
+            { action = "Export TSV", slash = "/libscanexport", effect = "Same scan, persist TSV in LibScannerSavedVars" },
+            { action = "Debug", slash = "/libscandebug", effect = "Toggle verbose chat (default off)" },
+        },
+    }
+end
+
 function LibScanner.GetHelpText()
-    return table.concat({
-        "LibScanner — scan enabled add-ons' library dependencies.",
-        "",
-        "Buttons / slash:",
-        "  Scan            — /libscan         run scan, open LibScanner window (Versions + Libraries)",
-        "  Export TSV      — /libscanexport   same scan, persist TSV in LibScannerSavedVars",
-        "  Debug           — /libscandebug    toggle verbose chat (default off)",
-        "  Open LibScanner — show the existing window without re-scanning",
-        "",
-        "Broken / Optional / Unused → chat copies a short comma-separated folder list",
-        "(do not paste the full Libraries report into chat; the client trims long payloads).",
-        "",
-        "On live clients io is nil, so manifests are not read. The Libraries tab shows a",
-        "WARNING and optional-only Lib* is not classified. Unused is then API-required only.",
-        "/scan is an alias for /libscan. Existing slash commands still work.",
-    }, "\n")
+    local entries = LibScanner.GetHelpEntries()
+    local lines = {}
+    local intro = entries.intro
+    for i = 1, #intro do
+        lines[#lines + 1] = intro[i].text
+    end
+    lines[#lines + 1] = ""
+    local rows = entries.rows
+    for i = 1, #rows do
+        local row = rows[i]
+        lines[#lines + 1] = string.format("%s  %s  %s", row.action, row.slash, row.effect)
+    end
+    return table.concat(lines, "\n")
 end
 
 function LibScanner.ShowWindow()
-    if LibScannerWindow then
-        LibScannerWindow:SetHidden(false)
+    if type(host.show) == "function" then
+        host.show()
         LibsOutputScrollToTopDeferred()
+        return
     end
+    EmitStatus("LibScanner: enable BasaTools to see Versions / Libraries.")
+end
+
+function LibScanner.ShowHostHelp()
+    LibScanner_SetTab("Libs")
+    local text = SanitizeForPanelText(LibScanner.GetHelpText())
+    SetLibsEditText(ColorizeLine(text, 0.93, 0.86, 0.55))
 end
 
 function LibScanner.CopyBucket(kind)
@@ -793,7 +881,7 @@ function LibScanner.Run(op)
         if ok then
             EmitScanSummary()
         else
-            EmitStatus("LibScanner: scan failed. See the LibScanner window.")
+            EmitStatus("LibScanner: scan failed. See the LibScanner window.", 1, 0.25, 0.25)
         end
     elseif op == "export" then
         local ok = RunScan()
@@ -801,7 +889,7 @@ function LibScanner.Run(op)
         if ok then
             EmitScanSummary()
         else
-            EmitStatus("LibScanner: scan failed. See the LibScanner window.")
+            EmitStatus("LibScanner: scan failed. See the LibScanner window.", 1, 0.25, 0.25)
         end
         ReportExport()
     elseif op == "debug" then
@@ -816,9 +904,8 @@ function LibScanner.Run(op)
         end
     elseif op == "open" then
         LibScanner.ShowWindow()
-        EmitStatus("LibScanner window opened (no new scan).")
     else
-        EmitStatus("LibScanner: unknown op. Use scan, export, debug, or open.")
+        EmitStatus("LibScanner: unknown op. Use scan, export, or debug.")
         if type(d) == "function" then
             d("[LibScanner] unknown op. /libscan  |  /libscanexport  |  /libscandebug")
         end
@@ -826,18 +913,27 @@ function LibScanner.Run(op)
 end
 
 local function Initialize()
+    local profile = nil
+    if type(GetWorldName) == "function" then
+        local world = GetWorldName()
+        if type(world) == "string" and world ~= "" then
+            profile = world
+        end
+    end
+    local displayName = nil
+    if type(GetDisplayName) == "function" then
+        local name = GetDisplayName()
+        if type(name) == "string" and name ~= "" then
+            displayName = name
+        end
+    end
     LibScannerSavedVars = ZO_SavedVars:NewAccountWide("LibScannerSavedVars", 1, nil, {
         lastExport = "",
         lastExportChunks = {},
         lastExportChunkCount = 0,
         lastExportVersion = 0,
         showDebug = false,
-    })
-
-    -- Link the XML List Template to the Lua Logic (Notice row height is now 50)
-    ZO_ScrollList_AddDataType(LibScannerWindowVersionsPanelList, 1, "LibScannerVersionRow", 50, SetupRow)
-
-    ZO_ScrollList_AddDataType(LibScannerWindowLibsPanelOutputList, 1, "LibScannerLibReportRow", 22, SetupLibsReportRow)
+    }, profile, displayName)
 
     SLASH_COMMANDS["/libscan"] = function()
         LibScanner.Run("scan")

@@ -6,10 +6,10 @@ A collection of add-ons for [The Elder Scrolls Online](https://www.elderscrollso
 
 | Add-on | Description |
 |--------|-------------|
-| [BasaTools](BasaTools/) | Control panel for *our* custom tools (WritMatch, LibScanner). Slash `/basatools`. |
-| [LibScanner](LibScanner/) | Scans library dependencies and shows add-on version / dependency status in a UI window. |
+| [BasaTools](BasaTools/) | Control panel for *our* custom tools (WritMatch, LibScanner) plus UI Tweaks and MatLog. Slash `/basatools`. |
+| [LibScanner](LibScanner/) | Scans library dependencies; Versions and Libraries lists are hosted in BasaTools. |
 | [WritMatch](WritMatch/) | Reconciles sealed master writs with backpack gear; flags LLC/WritWorthy/Lazy Writ complete, queues leftover improvement, lists orphaned queue jobs. |
-| [LootLogCustom](LootLogCustom/) | Custom fork of Loot Log (ILikeMoneyEdition); distinct `SavedVariables` and load name `LootLogCustom`. |
+| [LootLogCustom](LootLogCustom/) | **Archived** ILikeMoneyEdition fork of Loot Log. Not deployed. Gathered mats/surveys/writs live in BasaTools MatLog. |
 
 Documentation pattern: every add-on listed above has a detailed subsection under [Add-on details](#add-on-details). When you add a new add-on to the repo, add a table row here and a new `###` section there using the same structure as LibScanner (purpose and usage; installation is covered once below).
 
@@ -27,14 +27,18 @@ Treat this like any other community add-on: one folder per add-on, names must ma
 
 ### BasaTools
 
-**Purpose.** One window for the custom tools in this repo (**WritMatch**, **LibScanner**). Community add-ons, the LootLogCustom fork, and repo `scripts/` are out of scope. Each tool stays in its own add-on; BasaTools only hosts buttons, help, and a shared copyable output pane.
+**Purpose.** One window for the custom tools in this repo (**WritMatch**, **LibScanner**) plus native **Tweaks** (inventory gold-per-voucher overlay, HUD icon) and **MatLog** (gathered materials, surveys, master writs). Hosted tools stay in their own add-ons; each BasaTools tab is its own module (`RegisterTab`). Keep official Loot Log from Minion; [`LootLogCustom/`](LootLogCustom/) is an archive.
 
-**Usage.** After you install the folder with [Installation](#installation), enable **BasaTools** plus the tools you want (they are `OptionalDependsOn`). Type **`/basatools`** to toggle the window. Header-font text tabs are omitted when that tool add-on is not loaded (selected tab uses the game selected-text color). Hover an operation button for a short tooltip.
+**Usage.** After you install the folder with [Installation](#installation), enable **BasaTools** plus the tools you want (they are `OptionalDependsOn`). Type **`/basatools`** to toggle the window. WritMatch / LibScanner tabs are omitted when that add-on is not loaded. Tweaks and MatLog are always shown. Hover an operation button for a short tooltip.
 
-- **WritMatch** — Reconcile, Hold, Resume, Crafts, Queues, Kick, Orphans (same as `/writmatch` …). **Help** dumps usage into the pane.
-- **LibScanner** — Scan (same as `/libscan`: runs the scan and opens the existing LibScanner window), Export TSV, Debug, Open LibScanner (no re-scan), plus Broken / Optional / Unused → chat for short folder lists. **Help** dumps usage into the pane. Versions / Libraries lists stay in LibScanner’s own window.
+- **WritMatch** — Match writs, Show LLC queue, Clear LLC queue, Kick improve, Drop orphan jobs (same slash tokens as `/writmatch` …). **Help** shows a colored Action / Slash / Effect table.
+- **LibScanner** — Scan add-ons (same as `/libscan`), Export TSV, Debug checkbox. Versions and Libraries lists are **in this tab**. Select text in Libraries to copy.
+- **Tweaks** — One column of account-wide checkboxes: gold-per-voucher on sealed master writs (needs **WritWorthy**; does not replace sell price) and a movable **HUD icon** (custom BasaTools roundel; same as `/basatools`). No Help button or output pane on this tab.
+- **MatLog** — Single enable checkbox. Records gathered materials, survey reports, and master writs for three daily-reset days. **Full** shows one row per item per character, with quantity, LibPrice gold (inventory-style stack total + unit, with coin icon), and source category: **Writ** (daily-writ coffer contents, including LWC auto-loot of surveys and sealed writs), **Hireling** (hireling mail, including Take all into the craft bag — player mail is skipped; a mixed System-mail Take all may include guild-store attachments), or **World** (loot). Filter by day, character, and that category; footer totals follow the filters. **Summary** stacks by item. Click a column header to sort (Gold sorts by stack total). Uses game `ZO_SortHeader` arrows.
 
-The output pane is a multiline **EditBox** (select and Ctrl+C). Item links are converted to plain names there so selection is not broken; chat still gets the original lines (including links). Long paste uses **Copy → chat** only when short enough; otherwise select in the box or use per-bucket copy.
+Settings (toggles, last tab, HUD position, MatLog filters) are **account-wide**, not per character.
+
+The WritMatch output pane is a selectable **EditBox** with per-line color (`|c` markup). It starts empty and only shows WritMatch (or Help) text. Item links become plain names there; chat still gets the original lines (including links). Copy may include color codes. The window is **resizable** (bottom-right edge; size is remembered). Help uses a single-line Action / Slash / Effect table; if Effect is wider than the pane, a **horizontal scrollbar** appears under the list.
 
 Existing slash commands (`/writmatch`, `/libscan`, `/libscanexport`, `/libscandebug`) still work.
 
@@ -44,14 +48,14 @@ Existing slash commands (`/writmatch`, `/libscan`, `/libscanexport`, `/libscande
 
 **Purpose.** Surfaces dependency and version information from ESO's **Add-On Manager**: which **enabled, non-library** add-ons are up to date, which have **missing dependencies**, which **library** dependencies are missing **globally**, and which installed libraries appear **unused** (no enabled add-on lists them as a dependency).
 
-**Usage.** After you install the folder with [Installation](#installation), type **`/libscan`** in chat. Each time you open the window this way, LibScanner re-runs its scan. **`/libscanexport`** runs the same scan and persists a TSV snapshot to **`LibScannerSavedVars.lastExport`** (SavedVariables file under `live/SavedVariables/`) for merging into the repo catalog via `scripts/merge_libscan_tsv.py`.
+**Usage.** After you install the folder with [Installation](#installation), type **`/libscan`** in chat (opens the BasaTools LibScanner tab when BasaTools is loaded). **`/libscanexport`** runs the same scan and persists a TSV snapshot to **`LibScannerSavedVars.lastExport`** (SavedVariables file under `live/SavedVariables/`) for merging into the repo catalog via `scripts/merge_libscan_tsv.py`.
 
-The UI has two tabs:
+The UI (inside BasaTools) has two inner tabs:
 
 - **Versions** — Sortable list of enabled add-ons that are **not** libraries (titles are shown with ESO color codes stripped). Each row shows the add-on name, a **Yes/No** up-to-date indicator, the manifest `## Version` string, and—when the API reports gaps—a **Missing:** line listing dependencies that are not present.
-- **Libraries** — Text panel with two lists: **Missing libraries** that enabled add-ons require but that are not installed, and **Unused libraries** that are installed and marked as libraries by the game but are not required by any currently enabled add-on. For a dependency that is **not** installed, LibScanner only counts it toward the library views when its name **looks like** a library (heuristic: name starts with `Lib`), consistent with limited metadata for absent add-ons.
+- **Libraries** — Selectable text panel with broken dependencies, optional-only `Lib*`, and unused `Lib*`. For a dependency that is **not** installed, LibScanner only counts it toward the library views when its name **looks like** a library (heuristic: name starts with `Lib`). On live clients manifests cannot be read; the report includes a **WARNING**.
 
-**Target game build.** Declared in [`LibScanner/LibScanner.txt`](LibScanner/LibScanner.txt): `APIVersion` **101049**.
+**Target game build.** Declared in [`LibScanner/LibScanner.txt`](LibScanner/LibScanner.txt): `APIVersion` **101050**.
 
 ### WritMatch
 
@@ -59,16 +63,21 @@ The UI has two tabs:
 
 **Usage.** After you install the folder with [Installation](#installation), enable it (requires **LibLazyCrafting**; WritWorthy and Dolgubon's Lazy Writ Crafter are optional). In chat:
 
-- **`/writmatch hold`** — turn off Lazy Writ **auto-craft** (daily generic bows/staves re-queue when you open a station) and drop every LLC craft-new job. Use this before an improve pass. **`/writmatch resume`** turns auto-craft back on.
-- **`/writmatch crafts`** — clear WritWorthy **queued** flags and drop craft-new LLC jobs (keeps improvement). Does **not** stop daily auto-craft by itself.
+- **`/writmatch crafts`** — clear WritWorthy **queued** flags and drop all craft-new LLC jobs, including provisioning/alchemy/enchanting (keeps improvement). Does **not** stop daily auto-craft by itself.
 - **`/writmatch queues`** — dump every LibLazyCrafting job (addon, station, type, item). Paste this if something unexpected crafts.
 - **`/writmatch kick`** — at a station, start the next improve job if LLC stopped after one.
-- **`/writmatch`** — apply: mark turn-in-ready writs complete, convert under-quality matches into **WritMatch** LLC improve jobs (and dequeue those writs from WritWorthy so they cannot craft-new again), list unmatched writs and orphaned queue rows (queued, but the sealed writ is gone).
+- **`/writmatch`** — apply: mark turn-in-ready writs complete, convert under-quality matches into **WritMatch** LLC improve jobs (and dequeue those writs from WritWorthy so they cannot craft-new again), list unmatched writs and orphaned queue rows. Unmatched writs that are already queued in WritWorthy stay queued.
 - **`/writmatch orphans`** — cancel those orphaned LLC jobs.
 
 Chat is grouped (Complete / Improve / Unmatched / Orphans) with clickable item links. Unmatched lines include the wanted set, item, trait, style, and quality. v1 is backpack + smithing only (blacksmith, clothier, woodworking, jewelry).
 
 **Target game build.** Declared in [`WritMatch/WritMatch.txt`](WritMatch/WritMatch.txt): `APIVersion` **101050**.
+
+### LootLogCustom
+
+**Purpose.** Archive of an ILikeMoneyEdition v02 overlay on Loot Log 4.8.3.1 (gold journal tab, LibPrice columns). It is **not** installed by the Steam deploy script. Use **official Loot Log** from Minion plus **BasaTools MatLog** for gathered materials, surveys, and master writs.
+
+**Target game build.** Historical only: [`LootLogCustom/LootLogCustom.txt`](LootLogCustom/LootLogCustom.txt) (`APIVersion` **101046**).
 
 ## Repository layout
 
@@ -110,7 +119,7 @@ Optional: merge LibScanner TSV after exporting in-game — copy from `LibScanner
 python3 scripts/merge_libscan_tsv.py --savedvars "$HOME/Games/ESO/live/SavedVariables/LibScanner.lua"
 ```
 
-**Steam deploy.** [`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-ons (repo root is derived from the script location) when it finds **`AddonName/AddonName.txt`** or **`.addon`**. Destination defaults to the Steam Proton AddOns path; override with **`ESO_ADDONS_DIR`**. **`LootLogCustom` is currently skipped** (repo-only fork); remove it from `SKIP_NAMES` in that script when you want it deployed.
+**Steam deploy.** [`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-ons (repo root is derived from the script location) when it finds **`AddonName/AddonName.txt`** or **`.addon`**. Destination defaults to the Steam Proton AddOns path; override with **`ESO_ADDONS_DIR`**. **`LootLogCustom` stays in `SKIP_NAMES`** (archived fork; use BasaTools MatLog + official Loot Log).
 
 **Minion (Flatpak `gg.minion.Minion`):** config `~/.var/app/gg.minion.Minion/.minion/minion.xml` — game `ESO-1` `addon-path` should stay on the Steam Proton AddOns path (symlink into `~/Games/ESO/live/AddOns`). Minion’s detector still probes `FolderName.txt`; packages that ship only `.addon` may show as undetected until reinstalled. Do not point Minion at `compatdata/306130.tmp` or `*.prewipe*` trees.
 

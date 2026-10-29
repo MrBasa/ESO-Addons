@@ -10,7 +10,6 @@ local outputSink = nil
 
 local ownLLC = nil
 local writStationByName = nil
-local saved = nil
 local MarkComplete
 local KickImprove
 
@@ -39,10 +38,10 @@ function WritMatch.SetOutputSink(fn)
     end
 end
 
-local function Chat(msg)
+local function Chat(msg, r, g, b)
     CHAT_ROUTER:AddSystemMessage(msg)
     if type(outputSink) == "function" then
-        outputSink(msg)
+        outputSink(msg, r, g, b)
     end
 end
 
@@ -168,16 +167,50 @@ local function EachLLCQueue(fn)
     end
 end
 
+local function LinkFromItemId(itemId)
+    if itemId == nil or itemId == 0 then
+        return nil
+    end
+    local link = string.format("|H0:item:%s:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0|h|h", tostring(itemId))
+    if type(GetItemLinkName) == "function" then
+        local name = GetItemLinkName(link)
+        if type(name) == "string" and name ~= "" then
+            return link
+        end
+    end
+    return "id=" .. tostring(itemId)
+end
+
 local function RequestHint(req)
     if not req then
         return "?"
     end
-    local bits = { req.type or "?" }
-    if req.ItemLink and req.ItemLink ~= "" then
-        bits[#bits + 1] = req.ItemLink
-    elseif req.link and req.link ~= "" then
-        bits[#bits + 1] = req.link
+    local bits = {}
+    if req.type and req.type ~= "" then
+        bits[#bits + 1] = req.type
+    end
+    local link = req.ItemLink or req.link or req.resultLink
+    if type(link) == "string" and link ~= "" then
+        bits[#bits + 1] = link
     else
+        if req.recipeId ~= nil then
+            bits[#bits + 1] = "recipe=" .. tostring(req.recipeId)
+        end
+        if req.recipeListIndex ~= nil and req.recipeIndex ~= nil then
+            bits[#bits + 1] = string.format("recipe %s/%s", tostring(req.recipeListIndex), tostring(req.recipeIndex))
+        end
+        if req.solventId ~= nil then
+            bits[#bits + 1] = LinkFromItemId(req.solventId) or ("solvent=" .. tostring(req.solventId))
+        end
+        if req.reagentId1 ~= nil then
+            bits[#bits + 1] = LinkFromItemId(req.reagentId1)
+        end
+        if req.reagentId2 ~= nil then
+            bits[#bits + 1] = LinkFromItemId(req.reagentId2)
+        end
+        if req.potencyItemID ~= nil then
+            bits[#bits + 1] = LinkFromItemId(req.potencyItemID) or "glyph"
+        end
         if req.setIndex ~= nil then
             bits[#bits + 1] = "set=" .. tostring(req.setIndex)
         end
@@ -194,7 +227,21 @@ local function RequestHint(req)
     if req.reference ~= nil and req.reference ~= "" then
         bits[#bits + 1] = "ref=" .. tostring(req.reference)
     end
+    if #bits == 0 then
+        return "?"
+    end
     return table.concat(bits, " ")
+end
+
+local function IsCraftNew(req)
+    if not req then
+        return false
+    end
+    local t = req.type
+    if t == "improvement" or t == "deconstruct" then
+        return false
+    end
+    return true
 end
 
 local KICK_NAME = ADDON_NAME .. "Kick"
@@ -354,14 +401,15 @@ local function WarnExpertise(station)
     end
 end
 
--- Craft-new requests are type "smithing". Leave improvement / deconstruct / glyphs.
+-- Craft-new: smithing type=="smithing" plus provisioning/alchemy/enchanting (no type).
+-- Leave improvement and deconstruct.
 local function CancelAllCraftNew()
     local n = 0
     EachLLCQueue(function(_, _, queue)
         local i = 1
         while i <= #queue do
             local req = queue[i]
-            if req and req.type == "smithing" then
+            if IsCraftNew(req) then
                 table.remove(queue, i)
                 n = n + 1
             else
@@ -632,19 +680,19 @@ local function FindGear(writ, gear)
     return best, bestKind, expected
 end
 
-local function PrintGroup(title, lines)
+local function PrintGroup(title, lines, r, g, b)
     if #lines == 0 then
         return
     end
-    Chat(title)
+    Chat(title, r, g, b)
     for i = 1, #lines do
-        Chat("  " .. lines[i])
+        Chat("  " .. lines[i], r, g, b)
     end
 end
 
 local function Reconcile()
     if not LibLazyCrafting then
-        Chat("WritMatch: LibLazyCrafting is not loaded.")
+        Chat("WritMatch: LibLazyCrafting is not loaded.", 1, 0.25, 0.25)
         return
     end
 
@@ -679,8 +727,6 @@ local function Reconcile()
                     extra
                 )
             else
-                DequeueWritWorthy(writ.uniqueId)
-                CancelAllByReference(writ.uniqueId)
                 unmatchedLines[#unmatchedLines + 1] = writ.link .. "  " .. WantString(writ.parsed, writ.expectedLink)
             end
         end
@@ -711,10 +757,10 @@ local function Reconcile()
     end
 
     Chat("WritMatch")
-    PrintGroup("Complete", completeLines)
-    PrintGroup("Improve (queued)", improveLines)
-    PrintGroup("Unmatched", unmatchedLines)
-    PrintGroup("Orphans (still queued, writ not in bag)", orphanLines)
+    PrintGroup("Complete", completeLines, 0.35, 0.85, 0.35)
+    PrintGroup("Improve (queued)", improveLines, 0.55, 0.82, 0.98)
+    PrintGroup("Unmatched", unmatchedLines, 1, 0.45, 0.45)
+    PrintGroup("Orphans (still queued, writ not in bag)", orphanLines, 1, 0.52, 0.35)
 
     local tally = string.format(
         "%d complete, %d improve queued, %d unmatched, %d orphan.",
@@ -735,9 +781,6 @@ local function Reconcile()
         Chat("Ignored: " .. table.concat(unsupported, " "))
     end
     Chat(tally)
-    if LwcAutoCraftOn() then
-        Chat("WritMatch: Lazy Writ auto-craft is ON. A wood table will craft daily generic bows/staves. /writmatch hold first.")
-    end
     if #improveLines > 0 then
         WarnExpertise(CRAFTING_TYPE_WOODWORKING)
         WarnExpertise(CRAFTING_TYPE_BLACKSMITHING)
@@ -748,26 +791,23 @@ end
 
 local function DumpQueues()
     if not LibLazyCrafting then
-        Chat("WritMatch: LibLazyCrafting is not loaded.")
+        Chat("WritMatch: LibLazyCrafting is not loaded.", 1, 0.25, 0.25)
         return
     end
     Chat("WritMatch queues")
     Chat(string.format("  LWC auto-craft: %s", LwcAutoCraftOn() and "ON" or "off"))
-    if saved and saved.heldAutoCraft then
-        Chat("  hold: active (resume will turn auto-craft back on)")
-    end
-    local total, smithingN, improveN = 0, 0, 0
+    local total, craftNewN, improveN = 0, 0, 0
     EachLLCQueue(function(addonName, station, queue)
         for i = 1, #queue do
             local req = queue[i]
             if req then
                 total = total + 1
-                if req.type == "smithing" then
-                    smithingN = smithingN + 1
-                elseif req.type == "improvement" then
+                if req.type == "improvement" then
                     improveN = improveN + 1
+                elseif IsCraftNew(req) then
+                    craftNewN = craftNewN + 1
                 end
-                local tag = (req.type == "improvement") and "improve" or "NEW"
+                local tag = (req.type == "improvement") and "improve" or (req.type == "deconstruct" and "decon" or "NEW")
                 Chat(string.format(
                     "  [%s] %s  %s  %s",
                     tag,
@@ -781,7 +821,7 @@ local function DumpQueues()
     if total == 0 then
         Chat("  (empty)")
     else
-        Chat(string.format("%d LLC job(s): %d craft-new, %d improve.", total, smithingN, improveN))
+        Chat(string.format("%d LLC job(s): %d craft-new, %d improve.", total, craftNewN, improveN))
     end
     if improveN > 0 then
         WarnExpertise(CRAFTING_TYPE_WOODWORKING)
@@ -807,50 +847,7 @@ local function CancelCraftNews()
         dropped
     ))
     if LwcAutoCraftOn() then
-        Chat("WritMatch: Lazy Writ auto-craft is still ON — daily writs will re-queue at the station. /writmatch hold")
-    end
-end
-
-local function HoldDaily()
-    local settings = LwcSettings()
-    if settings then
-        if settings.autoCraft then
-            settings.autoCraft = false
-            if saved then
-                saved.heldAutoCraft = true
-            end
-            Chat("WritMatch: Lazy Writ auto-craft turned OFF so daily generic items will not craft.")
-        elseif saved and saved.heldAutoCraft then
-            Chat("WritMatch: Lazy Writ auto-craft already held off.")
-        else
-            Chat("WritMatch: Lazy Writ auto-craft was already off.")
-        end
-    else
-        Chat("WritMatch: Lazy Writ not loaded; skipped daily hold.")
-    end
-    if WritCreater then
-        if WritCreater.LLCInteraction then
-            WritCreater.LLCInteraction:cancelItem()
-        end
-        if WritCreater.LLCInteractionMultiplicator then
-            WritCreater.LLCInteractionMultiplicator:cancelItem()
-        end
-        if WritCreater.pomotionalLLC then
-            WritCreater.pomotionalLLC:cancelItem()
-        end
-    end
-    CancelCraftNews()
-    Chat("WritMatch: /writmatch next, then station. /writmatch resume when the improve pass is done.")
-end
-
-local function ResumeDaily()
-    local settings = LwcSettings()
-    if saved and saved.heldAutoCraft and settings then
-        settings.autoCraft = true
-        saved.heldAutoCraft = false
-        Chat("WritMatch: Lazy Writ auto-craft turned back ON.")
-    else
-        Chat("WritMatch: not holding Lazy Writ auto-craft (leave LWC settings as they are).")
+        Chat("WritMatch: Lazy Writ auto-craft is still ON — daily writs will re-queue at the station.")
     end
 end
 
@@ -878,25 +875,38 @@ local function CancelOrphans()
     Chat(string.format("%d orphaned LLC job(s) cancelled.", cancelled))
 end
 
+function WritMatch.GetHelpEntries()
+    return {
+        intro = {
+            { text = "WritMatch — reconcile sealed master writs with backpack gear." },
+            { text = "Requires LibLazyCrafting. Optional: WritWorthy, Dolgubon's Lazy Writ Crafter." },
+            { text = "Smithing only (blacksmith, clothier, woodworking, jewelry). Backpack only." },
+            { text = "If LLC improves once then stops: max the station expertise passive, then Kick improve at the table." },
+        },
+        rows = {
+            { action = "Match writs", slash = "/writmatch", effect = "Mark complete, queue leftover improves, list unmatched and orphans. Does not dequeue unmatched WritWorthy rows." },
+            { action = "Show LLC queue", slash = "/writmatch queues", effect = "Dump every LibLazyCrafting job" },
+            { action = "Clear LLC queue", slash = "/writmatch crafts", effect = "Clear WritWorthy queued flags and all craft-new LLC jobs; keep improves" },
+            { action = "Kick improve", slash = "/writmatch kick", effect = "Restart improve after LLC stalls (at a station)" },
+            { action = "Drop orphan jobs", slash = "/writmatch orphans", effect = "Cancel LLC jobs whose sealed writ is gone" },
+        },
+    }
+end
+
 function WritMatch.GetHelpText()
-    return table.concat({
-        "WritMatch — reconcile sealed master writs with backpack gear.",
-        "",
-        "Requires LibLazyCrafting. Optional: WritWorthy, Dolgubon's Lazy Writ Crafter.",
-        "Smithing only (blacksmith, clothier, woodworking, jewelry). Backpack only.",
-        "",
-        "Buttons / slash (/writmatch …):",
-        "  Reconcile  — /writmatch           mark complete, queue improve, list unmatched/orphans",
-        "  Hold       — /writmatch hold      turn off Lazy Writ autoCraft; drop craft-new jobs",
-        "  Resume     — /writmatch resume    restore autoCraft if we turned it off",
-        "  Crafts     — /writmatch crafts    clear WritWorthy queued + craft-new only",
-        "  Queues     — /writmatch queues    dump every LLC job",
-        "  Kick       — /writmatch kick      restart improve after LLC stalls (at a station)",
-        "  Orphans    — /writmatch orphans   cancel LLC jobs whose sealed writ is gone",
-        "",
-        "Chat keeps item links. This pane uses plain names so you can select and copy.",
-        "If LLC improves once then stops: max the station expertise passive, then Kick at the table.",
-    }, "\n")
+    local entries = WritMatch.GetHelpEntries()
+    local lines = {}
+    local intro = entries.intro
+    for i = 1, #intro do
+        lines[#lines + 1] = intro[i].text
+    end
+    lines[#lines + 1] = ""
+    local rows = entries.rows
+    for i = 1, #rows do
+        local row = rows[i]
+        lines[#lines + 1] = string.format("%s  %s  %s", row.action, row.slash, row.effect)
+    end
+    return table.concat(lines, "\n")
 end
 
 function WritMatch.Run(op)
@@ -905,10 +915,6 @@ function WritMatch.Run(op)
         CancelOrphans()
     elseif op == "crafts" then
         CancelCraftNews()
-    elseif op == "hold" then
-        HoldDaily()
-    elseif op == "resume" then
-        ResumeDaily()
     elseif op == "queues" then
         DumpQueues()
     elseif op == "kick" then
@@ -921,7 +927,7 @@ function WritMatch.Run(op)
     elseif op == "" or op == "reconcile" then
         Reconcile()
     else
-        Chat("WritMatch: /writmatch  |  hold  |  crafts  |  queues  |  kick  |  orphans  |  resume")
+        Chat("WritMatch: /writmatch  |  crafts  |  queues  |  kick  |  orphans")
     end
 end
 
@@ -939,7 +945,6 @@ local function OnAddOnLoaded(_, name)
         return
     end
     EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
-    saved = ZO_SavedVars:NewAccountWide("WritMatchSaved", 1, nil, { heldAutoCraft = false })
     SLASH_COMMANDS["/writmatch"] = OnSlash
     EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_CRAFT_COMPLETED, function()
         KickImprove()

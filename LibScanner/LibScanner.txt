@@ -1,8 +1,8 @@
 ## Title: LibScanner
 ## Author: Gemini
-## Version: 2.9.1
-## APIVersion: 101049
-## Description: Scans for missing/unused dependencies and outputs addon status in a UI window.
+## Version: 3.0.1
+## APIVersion: 101050
+## Description: Scans for missing/unused dependencies and shows addon status in BasaTools.
 ## SavedVariables: LibScannerSavedVars
 
 LibScanner.xml

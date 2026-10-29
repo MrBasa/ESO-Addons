@@ -7,7 +7,7 @@
 
 **ESO** means *Elder Scrolls Online*.
 
-Target runtime: **Elder Scrolls Online Update 49.0**, per [`LibScanner/LibScanner.txt`](../../LibScanner/LibScanner.txt) (`## APIVersion: 101049`; current add-on version in `## Version:` there).
+Target runtime: per [`LibScanner/LibScanner.txt`](../../LibScanner/LibScanner.txt) (`## APIVersion: 101050`; current add-on version in `## Version:` there).
 
 Global repo layout, LuaLS libraries (prefix + FlatBadger), and manifest `## APIVersion`: [`ESO-Global-RULE.md`](ESO-Global-RULE.md), [`ESO-LuaAPI-RULE.md`](ESO-LuaAPI-RULE.md).
 
@@ -42,7 +42,7 @@ Global repo layout, LuaLS libraries (prefix + FlatBadger), and manifest `## APIV
 
 **What went wrong in practice:** `ZO_TextBuffer` is **chat-log semantics** (line stacking, scroll origin, and **`maxHistoryLines` eviction of oldest lines**), not a document view. Pairing it with a hand-rolled **CombatMetrics-style `Slider`** is fragile: easy to show the wrong end of the log, clip headers when the line cap is exceeded, or scramble section order when trying to “fix” stacking by reversing `AddMessage`. A plain **multiline `EditBox`** filling the frame often **does not get a working scrollbar** unless it lives under a **`ZO_ScrollContainer`** template — so long reports look “truncated” with no thumb.
 
-**What works (LibScanner as implemented):** treat the Libraries report like **LeadList** / **Versions tab** data: **`ZO_ScrollList`** on **`LibScannerWindowLibsPanelOutputList`**, one **virtual row** per report line (`LibScannerLibReportRow` with a `Line` **`Label`**), **`ZO_ScrollList_AddDataType`**, **`ZO_ScrollList_CreateDataEntry`**, **`ZO_ScrollList_Commit`**, row **`SetColor(r,g,b,1)`** in the setup callback. After each full rebuild call **`ZO_ScrollList_ResetToTop(list)`** so the **Broken dependencies** block stays at the **top**; re-run reset when the Libraries panel is **`OnEffectivelyShown`** if layout was wrong while hidden.
+**What works (LibScanner as implemented):** Versions stays a **`ZO_ScrollList`** hosted in BasaTools (`LibScanner.SetHost`). Libraries is a **read-only multiline EditBox** (`ALLOW_MARKUP_TYPE_COLOR_ONLY`). Strip `|H` / leftover pipes, then wrap each line with `|c` so the report is colored and selectable. Do **not** feed item links or `ALLOW_MARKUP_TYPE_ALL` into that EditBox (those truncate). A `ZO_TextBuffer` + slider is still the wrong document view.
 
 **Reference add-on on disk:** LeadList — `leadlist.xml` (`inherits="ZO_ScrollList"`) and `leadlist.lua` (`ZO_ScrollList_AddDataType`, row setup). Same pattern as LibScanner’s Versions list.
 
@@ -53,11 +53,10 @@ Global repo layout, LuaLS libraries (prefix + FlatBadger), and manifest `## APIV
 - **`EditBox:SetText`** applies **ZO rich-text rules**: `|c…|r`, **`/c…`**, **`[...]`**-like segments, and **truncation** at surprising lengths. Sanitize or use **`TextBuffer` / `Label`** for untrusted strings.
 - Strip **`|c` / `|r`** (or use **`AddMessage` RGB**) when the target control parses pipe markup.
 
-### Copy dependency lists to clipboard (avoid truncation)
+### Copying the Libraries report
 
-- **Primary path:** **`ZO_GetChatSystem():StartTextEntry(body, nil, nil, true)`** when **`IsChatSystemAvailableForCurrentPlatform()`** — users look at the **chat input line** for Ctrl+C.
-- **Caveat:** the client may **trim** very long `StartTextEntry` payloads; do **not** paste the whole Libraries prose report into chat. Prefer **one button per category** (broken / optional-only `Lib*` / unused `Lib*`) that copies only a **comma-separated list of folder names** for that bucket (short single line).
-- **Stale data:** clear **`latestBrokenDeps` / `latestOptionalLibs` / `latestUnusedLibs`** at the start of each scan so buttons do not show a previous run after a failed scan.
+- Host the report in a **read-only EditBox** so the user can drag-select and Ctrl+C. Do **not** paste the full report into chat (the client trims long `StartTextEntry` payloads).
+- Clear **`latestBrokenDeps` / `latestOptionalLibs` / `latestUnusedLibs`** at the start of each scan.
 
 ### GuiXml / `Button` controls
 
@@ -80,9 +79,8 @@ Global repo layout, LuaLS libraries (prefix + FlatBadger), and manifest `## APIV
 - `GetAddOnManager()` then **`addOnManager:GetNumAddOns`**, **`GetAddOnInfo`**, **`GetAddOnVersion`**, **`GetAddOnNumDependencies`**, **`GetAddOnDependencyInfo`**, **`GetAddOnRootDirectoryPath`** (manifest paths)
 - **`io.open`** (when **`io`** exists) to read **`## DependsOn`** / **`## OptionalDependsOn`** / **`## PCDependsOn`** from `AddOnFolder.txt` / `AddOnFolder.addon` / `manifest.txt` under the root path. On standard **live** clients **`io` is `nil`**, so manifest lines are not read and the UI relies on the AddOnManager fallback plus the **WARNING** block in the Libraries report.
 - `EVENT_MANAGER:*` for `EVENT_ADD_ON_LOADED`
-- `SLASH_COMMANDS["/libscan"]`, **`/scan`** alias, **`/libscanexport`**, **`/libscandebug`** — all dispatch through `LibScanner.Run("scan"|"export"|"debug")`. BasaTools also calls `Run("open")` and `LibScanner.SetOutputSink` for a short scan summary (lists stay in this window).
-- Scroll list: `ZO_ScrollList_*` for the **Versions** tab and the **Libraries** report list (`OutputList`)
-- Copy: `ZO_GetChatSystem():StartTextEntry` for **per-category comma lists** (broken / optional / unused globals)
+- `SLASH_COMMANDS["/libscan"]`, **`/scan`** alias, **`/libscanexport`**, **`/libscandebug`** — all dispatch through `LibScanner.Run("scan"|"export"|"debug")`. BasaTools hosts Versions + Libraries via `LibScanner.SetHost`; `/libscan` opens the BasaTools LibScanner tab. Debug is `SetDebug` / `IsDebug` (checkbox in BasaTools). Help uses `GetHelpEntries()` / `ShowHostHelp()`.
+- Scroll list: `ZO_ScrollList_*` for the **Versions** tab. Libraries report is a selectable read-only **EditBox** (`ALLOW_MARKUP_TYPE_COLOR_ONLY`). There is no separate LibScanner window.
 
 ---
 

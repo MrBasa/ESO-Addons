@@ -1,8 +1,6 @@
 <GuiXml>
     <Controls>
-        <!-- Template for the individual rows in the Versions list -->
         <Control name="LibScannerVersionRow" virtual="true" mouseEnabled="true">
-            <!-- Increased height to 50 to fit the missing dependencies text -->
             <Dimensions x="600" y="50" />
             <Controls>
                 <Label name="$(parent)Name" font="ZoFontGame" wrapMode="ELLIPSIS">
@@ -17,117 +15,9 @@
                     <Anchor point="TOPLEFT" relativeTo="$(parent)Status" relativePoint="TOPRIGHT" offsetX="10" />
                     <Dimensions x="150" y="20" />
                 </Label>
-                <!-- New label for Missing Dependencies under the Addon Name -->
                 <Label name="$(parent)MissingDeps" font="ZoFontGameSmall" color="FF3333" wrapMode="ELLIPSIS">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="BOTTOMLEFT" offsetY="2" />
                     <Dimensions x="580" y="20" />
-                </Label>
-            </Controls>
-        </Control>
-
-        <!-- Main Window -->
-        <TopLevelControl name="LibScannerWindow" hidden="true" mouseEnabled="true" movable="true" clampedToScreen="true">
-            <Dimensions x="650" y="550" />
-            <Anchor point="CENTER" />
-            <Controls>
-                <Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop" />
-                
-                <!-- Title & Close Button -->
-                <Label name="$(parent)Title" font="ZoFontWindowTitle" text="LibScanner" color="CFDCBD">
-                    <Anchor point="TOPLEFT" offsetX="20" offsetY="15" />
-                </Label>
-                <Button name="$(parent)Close" inherits="ZO_CloseButton">
-                    <Anchor point="TOPRIGHT" offsetX="-15" offsetY="15" />
-                    <OnClicked>LibScannerWindow:SetHidden(true)</OnClicked>
-                </Button>
-
-                <!-- Navigation Tabs -->
-                <Button name="$(parent)TabLibs" inherits="ZO_DefaultButton" text="Libraries">
-                    <Anchor point="TOPLEFT" offsetX="20" offsetY="55" />
-                    <Dimensions x="120" y="28" />
-                    <OnClicked>LibScanner_SetTab("Libs")</OnClicked>
-                </Button>
-                <Button name="$(parent)TabVersions" inherits="ZO_DefaultButton" text="Versions">
-                    <Anchor point="TOPLEFT" relativeTo="$(parent)TabLibs" relativePoint="TOPRIGHT" offsetX="10" />
-                    <Dimensions x="120" y="28" />
-                    <OnClicked>LibScanner_SetTab("Versions")</OnClicked>
-                </Button>
-
-                <!-- 1. Libraries Panel (Global Dependencies) -->
-                <Control name="$(parent)LibsPanel" hidden="false">
-                    <OnEffectivelyShown>LibScanner_OnLibsPanelEffectivelyShown()</OnEffectivelyShown>
-                    <Anchor point="TOPLEFT" offsetY="95" offsetX="20" />
-                    <Anchor point="BOTTOMRIGHT" offsetX="-20" offsetY="-20" />
-                    <Controls>
-                        <Button name="$(parent)CopyUnusedChat" inherits="ZO_DefaultButton" text="Unused → chat">
-                            <Anchor point="TOPRIGHT" offsetX="-10" offsetY="8" />
-                            <Dimensions x="118" y="26" />
-                            <OnClicked>LibScanner_CopyUnusedLibsToChat()</OnClicked>
-                        </Button>
-                        <Button name="$(parent)CopyOptionalChat" inherits="ZO_DefaultButton" text="Optional → chat">
-                            <Anchor point="TOPRIGHT" relativeTo="$(parent)CopyUnusedChat" relativePoint="TOPLEFT" offsetX="-8" offsetY="0" />
-                            <Dimensions x="118" y="26" />
-                            <OnClicked>LibScanner_CopyOptionalLibsToChat()</OnClicked>
-                        </Button>
-                        <Button name="$(parent)CopyBrokenChat" inherits="ZO_DefaultButton" text="Broken → chat">
-                            <Anchor point="TOPRIGHT" relativeTo="$(parent)CopyOptionalChat" relativePoint="TOPLEFT" offsetX="-8" offsetY="0" />
-                            <Dimensions x="118" y="26" />
-                            <OnClicked>LibScanner_CopyBrokenDepsToChat()</OnClicked>
-                        </Button>
-                        <Backdrop name="$(parent)ScrollBG" inherits="ZO_EditBackdrop">
-                            <Anchor point="TOPLEFT" offsetY="40" />
-                            <Anchor point="BOTTOMRIGHT" />
-                        </Backdrop>
-                        <!-- ZO_ScrollList (same pattern as LeadList): one row per report line, native scroll bar, ResetToTop shows the start of the report. -->
-                        <Control name="$(parent)OutputList" inherits="ZO_ScrollList">
-                            <Anchor point="TOPLEFT" offsetX="10" offsetY="50" />
-                            <Anchor point="BOTTOMRIGHT" offsetX="-10" offsetY="-10" />
-                        </Control>
-                    </Controls>
-                </Control>
-
-                <!-- 2. Versions Panel -->
-                <Control name="$(parent)VersionsPanel" hidden="true">
-                    <Anchor point="TOPLEFT" offsetY="95" offsetX="20" />
-                    <Anchor point="BOTTOMRIGHT" offsetX="-20" offsetY="-20" />
-                    <Controls>
-                        
-                        <!-- Sortable Headers -->
-                        <Button name="$(parent)HdrName" text="Addon Name" font="ZoFontGameBold">
-                            <Anchor point="TOPLEFT" offsetX="5" />
-                            <Dimensions x="280" y="25" />
-                            <OnClicked>LibScanner_SortBy("name")</OnClicked>
-                        </Button>
-                        <Button name="$(parent)HdrStatus" text="Is Up To Date?" font="ZoFontGameBold">
-                            <Anchor point="TOPLEFT" relativeTo="$(parent)HdrName" relativePoint="TOPRIGHT" offsetX="10" />
-                            <Dimensions x="130" y="25" />
-                            <OnClicked>LibScanner_SortBy("status")</OnClicked>
-                        </Button>
-                        <Button name="$(parent)HdrVersion" text="Author Version" font="ZoFontGameBold">
-                            <Anchor point="TOPLEFT" relativeTo="$(parent)HdrStatus" relativePoint="TOPRIGHT" offsetX="10" />
-                            <Dimensions x="150" y="25" />
-                            <OnClicked>LibScanner_SortBy("version")</OnClicked>
-                        </Button>
-
-                        <!-- Scrollable List Area -->
-                        <Control name="$(parent)List" inherits="ZO_ScrollList">
-                            <Anchor point="TOPLEFT" offsetY="30" />
-                            <Anchor point="BOTTOMRIGHT" />
-                        </Control>
-
-                    </Controls>
-                </Control>
-            </Controls>
-        </TopLevelControl>
-
-        <!-- Libraries report: one virtual row per line (LeadList-style ZO_ScrollList). -->
-        <Control name="LibScannerLibReportRow" virtual="true" mouseEnabled="false">
-            <Dimensions y="22" />
-            <Anchor point="RIGHT" relativeTo="$(parent)" />
-            <Controls>
-                <Label name="$(parent)Line" font="ZoFontGame" wrapMode="ELLIPSIS">
-                    <Anchor point="TOPLEFT" offsetX="4" offsetY="2" />
-                    <Anchor point="BOTTOMRIGHT" offsetX="-4" offsetY="-2" />
                 </Label>
             </Controls>
         </Control>

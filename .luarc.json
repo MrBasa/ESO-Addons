@@ -9,6 +9,8 @@
   "diagnostics.globals": [
     "BasaTools",
     "BasaToolsWindow",
+    "BasaToolsWindowOutputBackdropList",
+    "BasaToolsWindowOutputBackdropHScroll",
     "LibScanner",
     "LibScannerWindow",
     "LibScannerWindowLibsPanel",
@@ -20,6 +22,9 @@
     "WritMatch",
     "WritWorthy",
     "WritWorthyInventoryList",
-    "WritCreater"
+    "WritCreater",
+    "LibPrice",
+    "BasaToolsHudIcon",
+    "TIMED_ACTIVITIES_MANAGER"
   ]
 }

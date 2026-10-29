@@ -85,9 +85,9 @@ After `/libscan` or `/libscanexport` in-game, copy `LibScannerSavedVars.lastExpo
 
 ---
 
-## 4. LootLogCustom deploy
+## 4. LootLogCustom (archived)
 
-Repo folder: `LootLogCustom/`. **`scripts/deploy_steam_eso_addons.sh` currently skips this folder** (see `SKIP_NAMES` in that script). When you want it live: remove `LootLogCustom` from `SKIP_NAMES`, run the deploy script, **disable** stock `LootLog` if present, verify **Loot Log (Custom)** in the add-on list, then remove or archive `LootLog_ILikeMoneyEdition_v02.zip` from `live/AddOns`. Alternatively copy `LootLogCustom/` into `live/AddOns` manually once.
+Repo folder: `LootLogCustom/` is an **archive** of ILikeMoneyEdition v02 (official Loot Log 4.8.3.1 plus gold/price columns). It is **not** deployed (`SKIP_NAMES` in `scripts/deploy_steam_eso_addons.sh`). Gold history, LibPrice totals, hireling mail, and daily-writ tracking live in **BasaTools Tweaks / Daily Rewards**. Keep Minion-updated official **LootLog**. Do not rebase this fork.
 
 ---
 

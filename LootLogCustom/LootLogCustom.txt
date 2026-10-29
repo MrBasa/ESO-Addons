@@ -1,3 +1,5 @@
+; ARCHIVE — not deployed. ILikeMoneyEdition v02 overlay on Loot Log 4.8.3.1.
+; Gold/price + hireling/writ tracking now live in BasaTools Tweaks / Daily Rewards.
 ; Fork of Loot Log (ILikeMoneyEdition v02): same folder layout; distinct SavedVariables and load name.
 ; Original not created by, affiliated with or sponsored by ZeniMax Media Inc.
 ; https://account.elderscrollsonline.com/add-on-terms

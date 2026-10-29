@@ -1,45 +1,50 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "deploy:steam-eso-addons",
-      "type": "shell",
-      "command": "${workspaceFolder}/scripts/deploy_steam_eso_addons.sh",
-      "presentation": {
-        "echo": false
-      },
-      "problemMatcher": []
+    "version": "2.0.0",
+    "options": {
+        "env": {
+            "FORCE_COLOR": "1"
+        }
     },
-    {
-      "label": "update:eso-api",
-      "type": "shell",
-      "command": "${workspaceFolder}/scripts/update_eso_api.sh",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "update:eso-api (check only)",
-      "type": "shell",
-      "command": "${workspaceFolder}/scripts/update_eso_api.sh",
-      "args": ["--check"],
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "build",
-      "type": "shell",
-      "dependsOn": ["deploy:steam-eso-addons"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": []
-    }
-  ]
+    "tasks": [
+        {
+            "label": "Deploy: Steam ESO addons",
+            "detail": "Copy repo add-ons with valid manifests into Steam Proton live/AddOns",
+            "type": "process",
+            "command": "${workspaceFolder}/scripts/deploy_steam_eso_addons.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "update:eso-api",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/update_eso_api.sh",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "update:eso-api (check only)",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/update_eso_api.sh",
+            "args": ["--check"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
 }

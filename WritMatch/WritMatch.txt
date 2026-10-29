@@ -1,8 +1,8 @@
 ## Title: WritMatch
 ## Author: mrbasa
-## Version: 1.0.4
+## Version: 1.1.0
 ## APIVersion: 101050
-## Description: Reconciles sealed master writs with backpack gear: flag complete, queue leftover improvement, hold daily auto-craft, list LLC queues.
+## Description: Reconciles sealed master writs with backpack gear: flag complete, queue leftover improvement, list and clear craft-new LLC jobs.
 ## DependsOn: LibLazyCrafting
 ## OptionalDependsOn: WritWorthy DolgubonsLazyWritCreator
 ## SavedVariables: WritMatchSaved
