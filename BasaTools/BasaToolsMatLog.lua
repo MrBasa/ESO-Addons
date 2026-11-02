@@ -55,8 +55,7 @@ local recentWritCredit = {}
 local lastBoxScanMs = 0
 local lastBoxScanHit = false
 local lootingWritBox = false
-local worldLootUntilMs = 0
-local WORLD_LOOT_GRACE_MS = 2500
+local lootingWorld = false
 -- LWC waits until the NPC interact camera ends, then delays UseItem
 -- (containerDelay + 1s + latency). Ten seconds is not enough.
 local WRIT_LOOT_WINDOW_S = 90
@@ -1263,13 +1262,51 @@ local function WritCaptureActive()
     return true
 end
 
+local function HarvestInteraction()
+    if type(GetInteractionType) ~= "function" then
+        return false
+    end
+    local interaction = GetInteractionType()
+    return interaction == INTERACTION_HARVEST
+        or interaction == INTERACTION_FISH
+        or interaction == INTERACTION_PICKPOCKET
+        or interaction == INTERACTION_HIDEYHOLE
+        or interaction == INTERACTION_ANTIQUITY_DIG_SPOT
+end
+
+-- World sacks/crates/nodes are scene interactables (OBJECT / FIXTURE / AOE).
+-- Daily-writ coffers are inventory items you UseItem (ITEM). There is no item
+-- container type on world objects.
+local function LootTargetIsWorldInteractable(name, targetType)
+    if IsWritRewardBoxName(name) then
+        return false
+    end
+    return targetType == INTERACT_TARGET_TYPE_OBJECT
+        or targetType == INTERACT_TARGET_TYPE_FIXTURE
+        or targetType == INTERACT_TARGET_TYPE_AOE_LOOT
+end
+
+local function WorldLootActive()
+    if lootingWorld then
+        return true
+    end
+    if HarvestInteraction() then
+        return true
+    end
+    if type(GetLootTargetInfo) == "function" then
+        local name, targetType = GetLootTargetInfo()
+        return LootTargetIsWorldInteractable(name, targetType)
+    end
+    return false
+end
+
 local function ShouldIgnoreInventoryGain()
     -- Mailbox inventory is credited from snapshots / bag-diff, not slot updates
     -- (craft-bag stacks often have stackCountChange 0). Do not log it as World.
     if mailboxOpen then
         return true
     end
-    if WritCaptureActive() or IsLootingNow() then
+    if WritCaptureActive() or WorldLootActive() or IsLootingNow() then
         return false
     end
     if CraftingBusy() then
@@ -1284,48 +1321,11 @@ local function ShouldIgnoreInventoryGain()
     return false
 end
 
-local function MarkWorldLoot()
-    local now = NowMs()
-    if now > 0 then
-        worldLootUntilMs = now + WORLD_LOOT_GRACE_MS
-    end
-end
-
-local function WorldLootActive()
-    local now = NowMs()
-    if now > 0 and now < worldLootUntilMs then
-        return true
-    end
-    if type(GetInteractionType) == "function" then
-        local interaction = GetInteractionType()
-        if interaction == INTERACTION_HARVEST
-            or interaction == INTERACTION_FISH
-            or interaction == INTERACTION_PICKPOCKET
-            or interaction == INTERACTION_HIDEYHOLE
-            or interaction == INTERACTION_ANTIQUITY_DIG_SPOT then
-            return true
-        end
-    end
-    if type(GetLootTargetInfo) == "function" then
-        local name, targetType = GetLootTargetInfo()
-        if IsWritRewardBoxName(name) then
-            return false
-        end
-        if targetType == INTERACT_TARGET_TYPE_OBJECT
-            or targetType == INTERACT_TARGET_TYPE_FIXTURE
-            or targetType == INTERACT_TARGET_TYPE_AOE_LOOT then
-            return true
-        end
-    end
-    return false
-end
-
 local function CurrentSource()
-    -- Harvest / node loot while LWC still has a writ coffer open.
     if WorldLootActive() then
         return SOURCE_WORLD
     end
-    if WritCaptureActive() then
+    if lootingWritBox or WritCaptureActive() then
         return SOURCE_WRIT
     end
     if mailboxOpen then
@@ -1595,10 +1595,11 @@ local function RecordGain(link, count, name, source)
     return AddItem(link, count, name, source)
 end
 
-local function CreditLootWindow()
+local function CreditLootWindow(source)
     if type(GetNumLootItems) ~= "function" or type(GetLootItemInfo) ~= "function" then
         return false
     end
+    source = source or SOURCE_WRIT
     local n = GetNumLootItems() or 0
     local added = false
     for i = 1, n do
@@ -1607,7 +1608,11 @@ local function CreditLootWindow()
         if type(GetLootItemLink) == "function" and lootId then
             link = GetLootItemLink(lootId, LINK_STYLE_DEFAULT)
         end
-        if RecordGain(link, quantity or 1, lootName, SOURCE_WRIT) then
+        local count = quantity or 1
+        if RecordGain(link, count, lootName, source) then
+            if source == SOURCE_WORLD and WritCaptureActive() then
+                NoteWritBagGain(link, count)
+            end
             added = true
         end
     end
@@ -1630,6 +1635,13 @@ local function OnInventorySlot(_, bagId, slotIndex, isNewItem, _sound, _reason, 
     end
     if mailboxOpen and mailCreditPending then
         ScheduleMailBagDiff(300)
+    end
+    -- LWC dumps coffer mats into the craft bag after the loot window is empty.
+    -- SlotGainCount is often 0 there; bag-diff is the fallback.
+    if WritCaptureActive() and not WorldLootActive() then
+        if type(zo_callLater) == "function" then
+            zo_callLater(CreditWritBagDiff, 250)
+        end
     end
     local count = SlotGainCount(bagId, slotIndex, isNewItem, stackCountChange)
     if not count then
@@ -1678,21 +1690,30 @@ local function OnLootUpdated()
     if type(GetLootTargetInfo) == "function" then
         name, targetType = GetLootTargetInfo()
     end
+    local worldInteract = HarvestInteraction() or LootTargetIsWorldInteractable(name, targetType)
     local isWritBox = IsWritRewardBoxName(name)
-    -- Used coffers are ITEM. Harvest nodes are OBJECT / FIXTURE — do not treat
-    -- every loot window during writ capture as a box.
-    if not isWritBox and WritCaptureActive() and targetType == INTERACT_TARGET_TYPE_ITEM then
-        isWritBox = true
+    -- LWC coffers are ITEM (UseItem). World sacks/crates/barrels are OBJECT/FIXTURE.
+    if not isWritBox and WritCaptureActive() and not worldInteract then
+        if targetType == INTERACT_TARGET_TYPE_ITEM then
+            isWritBox = true
+        elseif type(GetNumLootItems) == "function" and (GetNumLootItems() or 0) > 0 then
+            isWritBox = true
+        end
     end
+    lootingWorld = worldInteract and not isWritBox
     lootingWritBox = isWritBox
-    if not isWritBox then
-        if WritCaptureActive() then
-            MarkWorldLoot()
+    if lootingWorld then
+        if CreditLootWindow(SOURCE_WORLD) then
+            lastInvAddMs = NowMs()
+            RefreshIfShown()
         end
         return
     end
+    if not isWritBox then
+        return
+    end
     ExtendWritCapture(WRIT_LOOT_WINDOW_S, name)
-    if CreditLootWindow() then
+    if CreditLootWindow(SOURCE_WRIT) then
         lastInvAddMs = NowMs()
         RefreshIfShown()
     end
@@ -1700,8 +1721,15 @@ end
 
 local function OnLootClosed()
     local wasWritBox = lootingWritBox
+    local wasWorld = lootingWorld
     lootingWritBox = false
-    if not wasWritBox then
+    lootingWorld = false
+    -- World sack/crate windows must not drain the writ bag-diff. Coffer loot
+    -- (and LWC emptying the window before we see ITEM) still bag-diffs.
+    if wasWorld then
+        return
+    end
+    if not wasWritBox and not WritCaptureActive() then
         return
     end
     if pendingWrit then
