@@ -15,24 +15,16 @@ Everything opens from one window. Type `/basatools` in chat (or tap the optional
 | **LibScanner** | Checks whether your enabled add-ons are missing libraries or look out of date |
 | **MatLog** | Logs materials, survey loot, and master writs you gather |
 
-You normally install all four together from the suite zip. Each folder is its own add-on, so you can turn tools on or off individually in **Settings → Add-Ons**.
+Install all four together from the suite zip. Each folder is its own add-on — enable or disable them individually in **Settings → Add-Ons**.
 
 ---
 
 ## 🚀 Getting started
 
-### 1. Download
-
-Grab the latest **`BasaToolsSuite-v*.zip`** from [GitHub Releases](https://github.com/MrBasa/ESO-Addons/releases).
-
-### 2. Install the folders
-
-Extract the zip so you have **four folders** next to your other add-ons — not nested inside another folder:
-
-- `AddOns/BasaTools/`
-- `AddOns/WritMatch/`
-- `AddOns/LibScanner/`
-- `AddOns/MatLog/`
+1. Download the latest **`BasaToolsSuite-v*.zip`** from [GitHub Releases](https://github.com/MrBasa/ESO-Addons/releases).
+2. Use your addon manager, such as **Minion** or **ESO Addon Manager**, to install it into your `AddOns` folder (or extract the zip there yourself). You should end up with four folders: `BasaTools`, `WritMatch`, `LibScanner`, and `MatLog`.
+3. In **Settings → Add-Ons**, enable those four plus the libraries below, then reload UI if asked.
+4. Type **`/basatools`** in chat. (Optional: enable the HUD icon on the **Tweaks** tab.)
 
 **Where is `AddOns`?**
 
@@ -40,28 +32,13 @@ Extract the zip so you have **four folders** next to your other add-ons — not 
 |----------|------------------|
 | Windows | `Documents\Elder Scrolls Online\live\AddOns` |
 | macOS | `~/Documents/Elder Scrolls Online/live/AddOns` |
-| Linux | Under your ESO documents tree — often something like `…/Elder Scrolls Online/live/AddOns` |
-
-> Tip: many people use an add-on manager (for example **ESO Addon Manager**, **Minion**, or similar) to install and update libraries. The suite zip itself only contains the four BasaTools add-ons above.
-
-### 3. Turn them on in game
-
-1. Launch ESO.
-2. Open **Settings → Add-Ons**.
-3. Enable **BasaTools**, **WritMatch**, **LibScanner**, and **MatLog** (plus the libraries listed below).
-4. Reload UI if the game asks you to.
-
-### 4. Open the panel
-
-Type **`/basatools`** in chat.
-
-On the **Tweaks** tab you can also enable a small movable HUD icon that opens the same window with a click.
+| Linux (Steam) | `~/.steam/steam/steamapps/compatdata/306130/pfx/drive_c/users/steamuser/Documents/Elder Scrolls Online/live/AddOns` |
 
 ---
 
 ## 📚 Libraries you'll need
 
-The suite expects a couple of community libraries. Install them with your usual add-on manager or from [ESOUI](https://www.esoui.com/).
+Use your addon manager, such as **Minion** or **ESO Addon Manager**, to install these from [ESOUI](https://www.esoui.com/) if you don't already have them:
 
 | Library | Needed for | Required? |
 |---------|------------|-----------|
@@ -72,7 +49,7 @@ The suite expects a couple of community libraries. Install them with your usual 
 | **Dolgubon's Lazy Writ Crafter** | Better MatLog writ-coffer detection | Optional |
 | **LibDebugLogger** | Structured debug logs | Optional |
 
-On first load, BasaTools may print a short chat note if something useful is missing. Official **Loot Log** remains the general loot journal; MatLog focuses on mats, surveys, and master writs.
+BasaTools may note missing optionals in chat on first load. Official **Loot Log** remains the general loot journal; MatLog focuses on mats, surveys, and master writs.
 
 ---
 
