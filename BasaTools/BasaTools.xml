@@ -241,8 +241,11 @@
                 <Button name="$(parent)CheckOverlay" inherits="ZO_CheckButton">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)Intro" relativePoint="BOTTOMLEFT" offsetY="18" />
                 </Button>
-                <Button name="$(parent)CheckIcon" inherits="ZO_CheckButton">
+                <Button name="$(parent)CheckEelPie" inherits="ZO_CheckButton">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)CheckOverlay" relativePoint="BOTTOMLEFT" offsetY="16" />
+                </Button>
+                <Button name="$(parent)CheckIcon" inherits="ZO_CheckButton">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)CheckEelPie" relativePoint="BOTTOMLEFT" offsetY="16" />
                 </Button>
             </Controls>
         </Control>

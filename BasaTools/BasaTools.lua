@@ -929,6 +929,7 @@ local function Initialize()
         height = WIN_DEFAULT_H,
         uiTweaks = {
             writVoucherOverlay = false,
+            grannyEelPieWrits = false,
             floatingIcon = false,
         },
         iconPos = { x = 40, y = 200 },

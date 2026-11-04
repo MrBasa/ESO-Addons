@@ -2,6 +2,14 @@ local ADDON_NAME = "BasaTools"
 local OVERLAY_CHILD = "BasaToolsGv"
 local HUD_TEXTURE = "BasaTools/textures/hud.dds"
 
+-- Granny's Eel Pie (U50): food result → recipe scroll. Missing from WritWorthy map.
+local EEL_PIE_FOOD_ID = 225205
+local EEL_PIE_RECIPE_ID = 225208
+local RED_LICHEN_ID = 225210
+local RED_LICHEN_LINK = "|H0:item:225210:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0|h|h"
+-- Fallback when LibPrice has no sale yet (approx PC-NA avg; LibPrice wins when present).
+local RED_LICHEN_FALLBACK_GOLD = 3900
+
 BasaTools = BasaTools or {}
 BasaTools.Tweaks = BasaTools.Tweaks or {}
 
@@ -9,6 +17,7 @@ local Tweaks = BasaTools.Tweaks
 local saved = nil
 local overlayHooked = {}
 local hudFragment = nil
+local eelPieMapInjected = false
 
 local INVENTORY_LISTS = {
     "ZO_PlayerInventoryList",
@@ -40,6 +49,46 @@ end
 local function WritWorthyReady()
     local ww = rawget(_G, "WritWorthy")
     return type(ww) == "table" and type(ww.GetMatCost) == "function" and type(ww.ToVoucherCount) == "function"
+end
+
+local function SeedRedLichenPrice(ww)
+    if type(ww.FALLBACK_PRICE) == "table" then
+        ww.FALLBACK_PRICE["red lichen"] = RED_LICHEN_FALLBACK_GOLD
+        ww.FALLBACK_PRICE[RED_LICHEN_ID] = RED_LICHEN_FALLBACK_GOLD
+    end
+    if type(ww.LINK) == "table" and ww.LINK["red lichen"] == nil then
+        ww.LINK["red lichen"] = RED_LICHEN_LINK
+    end
+end
+
+local function ApplyGrannyEelPieWrits()
+    local tweaks = TweaksTable()
+    local enable = tweaks and tweaks.grannyEelPieWrits and true or false
+    local ww = rawget(_G, "WritWorthy")
+    if type(ww) ~= "table" or type(ww.Provisioning) ~= "table" then
+        return
+    end
+    local map = ww.Provisioning.FOODDRINK_TO_RECIPE_ITEM_ID
+    if type(map) ~= "table" then
+        return
+    end
+    if enable then
+        if map[EEL_PIE_FOOD_ID] == nil then
+            map[EEL_PIE_FOOD_ID] = EEL_PIE_RECIPE_ID
+            eelPieMapInjected = true
+        end
+        SeedRedLichenPrice(ww)
+    elseif eelPieMapInjected and map[EEL_PIE_FOOD_ID] == EEL_PIE_RECIPE_ID then
+        map[EEL_PIE_FOOD_ID] = nil
+        eelPieMapInjected = false
+    end
+end
+
+local function EelPieTooltip()
+    if WritWorthyReady() then
+        return "Teach WritWorthy Granny's Eel Pie (food 225205 → recipe 225208) so mat cost, g/v, and auto-craft work. Seeds a Red Lichen fallback price when LibPrice has none. Lazy Writ already resolves this recipe dynamically."
+    end
+    return "Requires WritWorthy. Enable WritWorthy to add Granny's Eel Pie master-writ support."
 end
 
 local function FormatGoldPerVoucher(gold)
@@ -346,6 +395,20 @@ function Tweaks.BindPanel(panel)
     )
     WidenCheckLabel(Child(panel, "CheckOverlay"))
     BindCheck(
+        Child(panel, "CheckEelPie"),
+        "Enable Granny's Eel Pie for WritWorthy master writs",
+        EelPieTooltip(),
+        function()
+            return tweaks.grannyEelPieWrits and true or false
+        end,
+        function(checked)
+            tweaks.grannyEelPieWrits = checked and true or false
+            ApplyGrannyEelPieWrits()
+            Tweaks.ApplyOverlay()
+        end
+    )
+    WidenCheckLabel(Child(panel, "CheckEelPie"))
+    BindCheck(
         Child(panel, "CheckIcon"),
         "Show a movable HUD icon to open this window",
         "Click the HUD icon to toggle BasaTools (same as /basatools). Drag to reposition.",
@@ -371,13 +434,18 @@ function Tweaks.Initialize(savedVars)
         if tweaks.writVoucherOverlay == nil then
             tweaks.writVoucherOverlay = false
         end
+        if tweaks.grannyEelPieWrits == nil then
+            tweaks.grannyEelPieWrits = false
+        end
         if tweaks.floatingIcon == nil then
             tweaks.floatingIcon = false
         end
     end
+    ApplyGrannyEelPieWrits()
     Tweaks.ApplyOverlay()
     Tweaks.ApplyHudIcon()
     EVENT_MANAGER:RegisterForEvent(ADDON_NAME .. "Tweaks", EVENT_PLAYER_ACTIVATED, function()
+        ApplyGrannyEelPieWrits()
         TryHookInventoryLists()
         EVENT_MANAGER:UnregisterForEvent(ADDON_NAME .. "Tweaks", EVENT_PLAYER_ACTIVATED)
     end)
@@ -386,7 +454,7 @@ end
 BasaTools.RegisterTab({
     id = "UITweaks",
     title = "Tweaks",
-    tooltip = "Inventory overlay and HUD icon.",
+    tooltip = "Inventory overlay, Granny's Eel Pie writ support, and HUD icon.",
     texture = HUD_TEXTURE,
     panelTemplate = "BasaToolsTweaksPanel",
     usesOutput = false,
