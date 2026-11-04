@@ -24,3 +24,6 @@ dist/
 
 # JetBrains (optional local)
 .idea/
+
+# Lua bytecode compiler output
+luac.out

@@ -1,124 +1,207 @@
-# ESO-Addons (BasaTools suite)
+# 🛠️ BasaTools
 
-Add-ons for [The Elder Scrolls Online](https://www.elderscrollsonline.com/) (ESO).
+A small suite of helpers for [The Elder Scrolls Online](https://www.elderscrollsonline.com/) — aimed at crafters who juggle **master writs**, **materials**, and a busy **AddOns** folder.
 
-**Usual install for friends / guild-mates:** download the latest **suite zip** from [GitHub Releases](https://github.com/MrBasa/ESO-Addons/releases) and extract it into your live `AddOns` folder.
+Everything opens from one window. Type `/basatools` in chat (or tap the optional HUD icon) and pick a tab.
 
-## Suite contents
+---
 
-| Add-on | Role |
-|--------|------|
-| [BasaTools](BasaTools/) | Control panel (`/basatools`): hosts tool tabs + native UI Tweaks / HUD icon |
-| [WritMatch](WritMatch/) | Reconcile sealed master writs with backpack gear (`/writmatch`) |
-| [LibScanner](LibScanner/) | Scan library / dependency status (UI hosted in BasaTools) |
-| [MatLog](MatLog/) | Track gathered materials, surveys, and master writs (UI hosted in BasaTools) |
+## 📦 What's included
 
-Each folder is its **own** ESO add-on (modular). The release zip installs all four together. Enable them in **Settings → Add-Ons**.
+| Add-on | What it does |
+|--------|----------------|
+| **BasaTools** | The shared window, Help buttons, and a **Tweaks** tab for inventory / HUD options |
+| **WritMatch** | Matches sealed master writs to gear already in your backpack |
+| **LibScanner** | Checks whether your enabled add-ons are missing libraries or look out of date |
+| **MatLog** | Logs materials, survey loot, and master writs you gather |
 
-## Install from GitHub Releases
+You normally install all four together from the suite zip. Each folder is its own add-on, so you can turn tools on or off individually in **Settings → Add-Ons**.
 
-1. Open [Releases](https://github.com/MrBasa/ESO-Addons/releases) and download `BasaToolsSuite-v*.zip`.
-2. Extract so you get four folders next to your other add-ons (not nested inside another folder):
+---
 
-   - `AddOns/BasaTools/`
-   - `AddOns/WritMatch/`
-   - `AddOns/LibScanner/`
-   - `AddOns/MatLog/`
+## 🚀 Getting started
 
-3. Launch ESO → **Settings → Add-Ons** → enable those four (and their required libraries).
-4. Type **`/basatools`** in chat (or use the optional HUD icon from the Tweaks tab).
+### 1. Download
 
-### AddOns folder locations
+Grab the latest **`BasaToolsSuite-v*.zip`** from [GitHub Releases](https://github.com/MrBasa/ESO-Addons/releases).
 
-| Platform | Typical path |
-|----------|----------------|
+### 2. Install the folders
+
+Extract the zip so you have **four folders** next to your other add-ons — not nested inside another folder:
+
+- `AddOns/BasaTools/`
+- `AddOns/WritMatch/`
+- `AddOns/LibScanner/`
+- `AddOns/MatLog/`
+
+**Where is `AddOns`?**
+
+| Platform | Typical location |
+|----------|------------------|
 | Windows | `Documents\Elder Scrolls Online\live\AddOns` |
 | macOS | `~/Documents/Elder Scrolls Online/live/AddOns` |
-| Steam Proton / Linux | `~/.steam/steam/steamapps/compatdata/306130/pfx/drive_c/users/steamuser/Documents/Elder Scrolls Online/live/AddOns` (this repo’s workstation also uses `~/Games/ESO/live/AddOns`) |
+| Linux | Under your ESO documents tree — often something like `…/Elder Scrolls Online/live/AddOns` |
 
-The game expects `AddonFolder/AddonFolder.txt` (or `.addon`) with the **same basename** as the folder.
+> Tip: many people use an add-on manager (for example **ESO Addon Manager**, **Minion**, or similar) to install and update libraries. The suite zip itself only contains the four BasaTools add-ons above.
 
-### Libraries (Minion / ESOUI)
+### 3. Turn them on in game
 
-| Library | Needed for |
-|---------|------------|
-| **BasaTools** | **Required** by WritMatch, LibScanner, and MatLog (suite control panel + shared helpers) |
-| **LibLazyCrafting** | **Required** by WritMatch |
-| **LibDataEncode** | **Required** by MatLog (compact SavedVariables encode) |
-| **LibPrice** | MatLog gold columns (optional; values blank without it) |
-| **WritWorthy** | Tweaks gold-per-voucher overlay / Granny’s Eel Pie support (optional) |
-| **Dolgubon’s Lazy Writ Crafter** | Better MatLog writ-coffer detection (optional) |
-| **LibDebugLogger** | Structured logs / DebugLogViewer (optional; no chat nag if missing) |
+1. Launch ESO.
+2. Open **Settings → Add-Ons**.
+3. Enable **BasaTools**, **WritMatch**, **LibScanner**, and **MatLog** (plus the libraries listed below).
+4. Reload UI if the game asks you to.
 
-The suite zip still ships only the four BasaTools add-ons — install **LibLazyCrafting** and **LibDataEncode** (and optionals) via Minion. On first load, BasaTools prints a short chat summary if optional tools or libraries are missing.
+### 4. Open the panel
 
-Official **Loot Log** from Minion remains the general loot journal; MatLog covers mats / surveys / master writs.
+Type **`/basatools`** in chat.
 
-## Add-on details
+On the **Tweaks** tab you can also enable a small movable HUD icon that opens the same window with a click.
 
-### BasaTools
+---
 
-One window for **WritMatch**, **LibScanner**, and **MatLog**, plus native **Tweaks** (inventory gold-per-voucher overlay, Granny’s Eel Pie WritWorthy helpers, movable HUD icon). Tool tabs are omitted when that add-on is not loaded. Tweaks always show.
+## 📚 Libraries you'll need
 
-Settings (toggles, last tab, HUD position, window size) are **account-wide** via `BasaToolsSaved`. Target API: **101050**.
+The suite expects a couple of community libraries. Install them with your usual add-on manager or from [ESOUI](https://www.esoui.com/).
 
-### WritMatch
+| Library | Needed for | Required? |
+|---------|------------|-----------|
+| **LibLazyCrafting** | WritMatch | ✅ Yes |
+| **LibDataEncode** | MatLog | ✅ Yes |
+| **LibPrice** | Gold values in MatLog | Optional |
+| **WritWorthy** | Gold-per-voucher overlay & Granny's Eel Pie tweak | Optional |
+| **Dolgubon's Lazy Writ Crafter** | Better MatLog writ-coffer detection | Optional |
+| **LibDebugLogger** | Structured debug logs | Optional |
 
-Requires **BasaTools** and **LibLazyCrafting**. Optional: WritWorthy, Lazy Writ. Slash: `/writmatch`, `/writmatch crafts|queues|kick|orphans`.
+On first load, BasaTools may print a short chat note if something useful is missing. Official **Loot Log** remains the general loot journal; MatLog focuses on mats, surveys, and master writs.
 
-### LibScanner
+---
 
-Requires **BasaTools**. Slash: `/libscan`, `/libscanexport`, `/libscandebug`. Versions / Libraries UI lives in the BasaTools LibScanner tab.
+## 🪟 BasaTools (the window)
 
-### MatLog
+BasaTools is the home for the other tools. Tabs appear only when that add-on is enabled; **Tweaks** is always there.
 
-Requires **BasaTools** and **LibDataEncode**. Optional: LibPrice, Lazy Writ. Hosted as a BasaTools tab. SavedVariables: account-wide `MatLogSaved` (compact rows, LibDataEncode blob).
+**Basics**
 
-## Maintainer / local tooling
+- Open / close with `/basatools` or the HUD icon.
+- Drag the window; resize from the bottom-right corner.
+- Settings (last tab, window size, HUD position, Tweaks options) are saved **for your account**, not per character.
 
-Repository layout beyond the four add-ons:
+### Tweaks tab
 
-- [`.shared/`](.shared/) — LuaLS / FlatBadger eso-api (not an add-on)
-- [`scripts/`](scripts/) — Steam deploy, suite packaging, catalog / health audit, eso-api refresh
-- [`data/`](data/) — generated audit outputs
-- [`.vscode/`](.vscode/) — editor tasks
-- [`.cursor/rules/`](.cursor/rules/) — Cursor rules
+Three optional checkboxes:
 
-### Versions & release
+| Option | What it does |
+|--------|----------------|
+| **Show gold per voucher…** | On sealed master writs in inventory, shows crafting-mat cost as gold per writ voucher (needs **WritWorthy**). Does not replace the sell-price column. |
+| **Enable Granny's Eel Pie…** | Teaches **WritWorthy** about Granny's Eel Pie master writs so mat cost / g/v / auto-craft work correctly. |
+| **Show a movable HUD icon…** | Places a small hammer icon on screen. Click to open BasaTools; drag to move it. |
 
-There is no central version file. Each add-on has its own `## Version` and integer `## AddOnVersion` in `<Addon>/<Addon>.txt`.
+---
 
-1. Bump **only** add-ons that changed. Keep `## AddOnVersion` monotonic (ESO uses it for update detection).
-2. Suite zip name comes from the CLI arg, `v*` git tag, or fallback `BasaTools` `## Version` — see [`scripts/package_basatools_suite.sh`](scripts/package_basatools_suite.sh).
-3. Local dry-run: `scripts/package_basatools_suite.sh X.Y.Z` → `dist/BasaToolsSuite-vX.Y.Z.zip`.
-4. Tag and push `vX.Y.Z` to run [`.github/workflows/release.yml`](.github/workflows/release.yml) and attach the zip to the GitHub Release.
+## ⚒️ WritMatch
 
-VS Code / Cursor task: **Package: BasaTools suite**.
+**For:** crafters with sealed master writs and finished (or nearly finished) gear already in the backpack.
 
-### Steam deploy (this workstation)
+WritMatch looks at sealed **smithing** master writs (blacksmith, clothier, woodworking, jewelry) in your **backpack** and pairs them with matching crafted gear. When something already meets the writ, it marks the writ complete in the usual crafting helpers and cleans up leftover craft jobs. When gear still needs improvement, it queues that improvement instead of crafting a duplicate.
 
-[`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-on folders into the Steam Proton `AddOns` tree (`cp -a`; does **not** delete stale files by default). Override with `ESO_ADDONS_DIR`. To remove orphans under those deployed folders after copy: `--prune` or `DEPLOY_PRUNE=1`. Task: **Deploy: Steam ESO addons**.
+Open the **WritMatch** tab (or use the slash commands below). Results show in the output pane and in chat.
 
-### Add-on catalog / health
+| Button / command | What it does |
+|------------------|--------------|
+| **Match writs** · `/writmatch` | Pair writs with backpack gear: mark complete, queue leftover improves, list unmatched items. Does **not** cancel craft jobs for writs that still have no matching gear. |
+| **Show LLC queue** · `/writmatch queues` | List every LibLazyCrafting job currently queued. |
+| **Clear LLC queue** · `/writmatch crafts` | Clear “craft a new item” jobs and related WritWorthy queued flags. Keeps improvement jobs. |
+| **Kick improve** · `/writmatch kick` | Restart improvement if the craft queue stalled — stand at a crafting station first. |
+| **Drop orphan jobs** · `/writmatch orphans` | Cancel craft jobs whose sealed writ is no longer in your backpack. |
 
-```bash
-python3 scripts/catalog_addons.py
-python3 scripts/scan_addon_code.py
-python3 scripts/eso_addon_health.py -o data/addon_health_report.md
-```
+**Helpful tips**
 
-See [`data/addon_catalog.csv`](data/addon_catalog.csv) and related files under [`data/`](data/).
+- Only backpack gear counts (not bank / craft bag).
+- If improvement runs once then stops, max the station’s expertise passive, then use **Kick improve** at the table.
+- Press **Help** on the tab for the same guidance in-game.
 
-### Lua language server
+---
 
-LuaLS uses [`.luarc.json`](.luarc.json): hand prefix [`.shared/eso-api-stubs/eso_api_prefix.lua`](.shared/eso-api-stubs/eso_api_prefix.lua) then FlatBadger [`.shared/eso-api/library`](.shared/eso-api/library). Refresh after major patches:
+## 🔍 LibScanner
 
-```bash
-scripts/update_eso_api.sh --check
-scripts/update_eso_api.sh
-```
+**For:** anyone whose AddOns list has grown and who wonders “what’s broken or unused?”
 
-Details: [`.cursor/rules/ESO-LuaAPI-RULE.md`](.cursor/rules/ESO-LuaAPI-RULE.md).
+LibScanner scans **enabled** add-ons and reports dependency / version status inside BasaTools.
+
+1. Open the **LibScanner** tab (or type `/libscan` — `/scan` also works).
+2. Click **Scan add-ons**.
+3. Use the **Versions** and **Libraries** sub-views:
+
+| View | What you'll see |
+|------|-----------------|
+| **Versions** | Enabled add-ons with whether they look up to date, plus author version info |
+| **Libraries** | Missing / disabled dependencies, and a best-effort list of `Lib*` folders that may be unused |
+
+| Button / command | What it does |
+|------------------|--------------|
+| **Scan add-ons** · `/libscan` | Run the scan and show results |
+| **Export TSV** · `/libscanexport` | Same scan, also save a TSV snapshot in SavedVariables |
+| `/libscandebug` | Toggle extra debug chat (off by default) |
+
+**Helpful tips**
+
+- Select text in the Libraries report to copy it — don't paste a huge report into chat (the client truncates).
+- “Unused library” is a hint, not a guarantee it's safe to delete. When in doubt, leave it installed.
+- Press **Help** on the tab for in-game guidance.
+
+---
+
+## 📋 MatLog
+
+**For:** tracking what you gather — crafting mats, survey loot, and master writs — without treating it as a full loot journal.
+
+MatLog records quietly in the background while **Enable** is checked. Open the **MatLog** tab in BasaTools to browse the log.
+
+**What it tracks**
+
+- World loot (materials / surveys / master writs as classified by the add-on)
+- Daily-writ coffer contents (including auto-loot by Lazy Writ Crafter, when that add-on is present)
+- Hireling mail (including “Take all” into the craft bag)
+
+**What it does not track**
+
+- Gold
+- Vendor purchases
+- Guild-store buys
+- Ordinary player-to-player mail
+
+**How to use the tab**
+
+| Control | What it does |
+|---------|----------------|
+| **Enable** | Turn recording on or off. Existing rows stay until they age out. |
+| **Summary** | Stack the same item across characters. Off = **Full** view (one row per item per character). |
+| Day dropdown | Switch between the last few daily-reset days (kept for **three** days). |
+| Character / Category | Filter the list; footer totals follow the filters. |
+| Column headers | Click to sort; click again to reverse. |
+
+Gold columns need **LibPrice**; without it, values stay blank. Category labels are **Writ** (quest), **Hireling** (mail), or **World** (loot).
+
+Press **Help** on the tab for the full in-game explanation.
+
+---
+
+## 💬 Quick reference
+
+| Open… | Type… |
+|-------|--------|
+| Main window | `/basatools` |
+| WritMatch match | `/writmatch` |
+| LibScanner | `/libscan` (or `/scan`) |
+| MatLog | Use the MatLog tab in BasaTools |
+
+---
+
+## 🧑‍💻 Developing / packaging
+
+Maintainer notes (version bumps, suite zip, GitHub Releases, local scripts, LuaLS) live in [docs/maintainer.md](docs/maintainer.md).
+
+---
 
 ## License
 
