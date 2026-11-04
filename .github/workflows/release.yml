@@ -35,7 +35,7 @@ jobs:
           1. Download \`BasaToolsSuite-v${version}.zip\`
           2. Extract into your live \`AddOns\` folder (creates BasaTools, WritMatch, LibScanner, MatLog)
           3. Enable those four add-ons in Settings → Add-Ons
-          4. From Minion/ESOUI also install **LibLazyCrafting** (required by WritMatch)
+          4. From Minion/ESOUI also install **LibLazyCrafting** (WritMatch) and **LibDataEncode** (MatLog)
 
           ## Optional (Minion/ESOUI)
           - **LibPrice** — MatLog gold values
