@@ -1,9 +1,10 @@
 ## Title: BasaTools
 ## Author: mrbasa
-## Version: 1.3.25
+## Version: 1.3.26
+## AddOnVersion: 1326
 ## APIVersion: 101050
-## Description: Control panel for custom tools (WritMatch, LibScanner) plus UI Tweaks and MatLog.
-## OptionalDependsOn: WritMatch LibScanner WritWorthy LibPrice
+## Description: Control panel for WritMatch, LibScanner, and MatLog, plus UI Tweaks.
+## OptionalDependsOn: WritMatch LibScanner MatLog WritWorthy LibPrice DolgubonsLazyWritCreator LibDebugLogger
 ## SavedVariables: BasaToolsSaved
 
 BasaTools.xml

@@ -6,8 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 DEST_ROOT="${ESO_ADDONS_DIR:-${ESO_ADDONS:-$HOME/.steam/steam/steamapps/compatdata/306130/pfx/drive_c/users/steamuser/Documents/Elder Scrolls Online/live/AddOns}}"
-# LootLogCustom: keep in repo only until you explicitly remove it from this skip list.
-SKIP_NAMES=".shared .cursor .vscode docs scripts LootLogCustom"
+SKIP_NAMES=".shared .cursor .vscode docs scripts data dist"
 
 # shellcheck source=lib/mocha.sh
 source "${SCRIPT_DIR}/lib/mocha.sh"

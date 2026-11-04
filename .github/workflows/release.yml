@@ -1,0 +1,52 @@
+name: Release BasaTools suite
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package suite zip
+        env:
+          FORCE_COLOR: "0"
+        run: |
+          chmod +x scripts/package_basatools_suite.sh
+          scripts/package_basatools_suite.sh "${GITHUB_REF_NAME}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          asset="dist/BasaToolsSuite-v${version}.zip"
+          test -f "$asset"
+          notes_file="$(mktemp)"
+          cat >"$notes_file" <<EOF
+          ## Install
+          1. Download \`BasaToolsSuite-v${version}.zip\`
+          2. Extract into your live \`AddOns\` folder (creates BasaTools, WritMatch, LibScanner, MatLog)
+          3. Enable those four add-ons in Settings → Add-Ons
+          4. From Minion/ESOUI also install **LibLazyCrafting** (required by WritMatch)
+
+          ## Optional (Minion/ESOUI)
+          - **LibPrice** — MatLog gold values
+          - **WritWorthy** — gold-per-voucher overlay / Eel Pie tweak
+          - **Dolgubon's Lazy Writ Crafter** — writ coffer name helpers
+          - **LibDebugLogger** — structured logs (DebugLogViewer)
+
+          Each folder is its own add-on; the suite zip is the usual full install.
+          EOF
+          # Strip the leading indentation from the heredoc body.
+          sed -i 's/^          //' "$notes_file"
+          gh release create "$GITHUB_REF_NAME" "$asset" \
+            --title "BasaTools Suite ${GITHUB_REF_NAME}" \
+            --notes-file "$notes_file"

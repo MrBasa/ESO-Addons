@@ -3,6 +3,7 @@ local ADDON_NAME = "BasaTools"
 BasaTools = BasaTools or {}
 
 local saved = nil
+local logger = nil
 local registeredTabs = {}
 local tabsBuilt = false
 local outputLines = {}
@@ -47,6 +48,81 @@ local function Child(parent, name)
         return parent:GetNamedChild(name)
     end
     return nil
+end
+
+local function GetLogger()
+    if logger then
+        return logger
+    end
+    local lib = rawget(_G, "LibDebugLogger")
+    if type(lib) == "function" then
+        logger = lib(ADDON_NAME)
+    elseif type(lib) == "table" and type(lib.Create) == "function" then
+        logger = lib.Create(ADDON_NAME)
+    else
+        logger = {
+            Debug = function() end,
+            Info = function() end,
+            Warn = function(_, msg)
+                if type(d) == "function" then
+                    d(ADDON_NAME .. ": " .. tostring(msg))
+                end
+            end,
+            Error = function(_, msg)
+                if type(d) == "function" then
+                    d(ADDON_NAME .. " ERROR: " .. tostring(msg))
+                end
+            end,
+        }
+    end
+    return logger
+end
+
+BasaTools.GetLogger = GetLogger
+
+local function ChatSystem(msg)
+    if CHAT_ROUTER and type(CHAT_ROUTER.AddSystemMessage) == "function" then
+        CHAT_ROUTER:AddSystemMessage(msg)
+    elseif type(d) == "function" then
+        d(msg)
+    end
+end
+
+local function ReportMissingOptionals()
+    local missing = {}
+    local function note(label, detail)
+        missing[#missing + 1] = label .. " (" .. detail .. ")"
+    end
+    local writMatch = rawget(_G, "WritMatch")
+    if not (type(writMatch) == "table" and type(writMatch.Run) == "function") then
+        note("WritMatch", "tab hidden")
+    end
+    local libScanner = rawget(_G, "LibScanner")
+    if not (type(libScanner) == "table" and type(libScanner.Run) == "function") then
+        note("LibScanner", "tab hidden")
+    end
+    local matLog = rawget(_G, "MatLog")
+    if not (type(matLog) == "table" and type(matLog.BindPanel) == "function") then
+        note("MatLog", "tab hidden")
+    end
+    if type(rawget(_G, "WritWorthy")) ~= "table" then
+        note("WritWorthy", "g/v overlay and Eel Pie tweak limited")
+    end
+    if type(rawget(_G, "LibPrice")) ~= "table" then
+        note("LibPrice", "MatLog gold blank")
+    end
+    if type(rawget(_G, "WritCreater")) ~= "table" then
+        note("DolgubonsLazyWritCreator", "MatLog writ-coffer names limited")
+    end
+    if #missing == 0 then
+        return
+    end
+    ChatSystem(
+        "BasaTools: optional missing — "
+            .. table.concat(missing, ", ")
+            .. ". Install from the suite zip or Minion/ESOUI as applicable."
+    )
+    GetLogger():Info("optional missing: " .. table.concat(missing, ", "))
 end
 
 local function GetWindow()
@@ -933,14 +1009,7 @@ local function Initialize()
             floatingIcon = false,
         },
         iconPos = { x = 40, y = 200 },
-        matlogEnabled = true,
-        matlogView = "full",
-        matlogPriceSource = "npc",
-        matlogDayKey = nil,
-        matlogChar = "all",
-        matlogCategory = "all",
         libScannerTab = "Libs",
-        matlog = {},
     }
     local profile = nil
     if type(GetWorldName) == "function" then
@@ -991,6 +1060,9 @@ local function Initialize()
     SLASH_COMMANDS["/basatools"] = function()
         BasaTools.Toggle()
     end
+
+    ReportMissingOptionals()
+    GetLogger():Info("loaded")
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, function(_, addonName)

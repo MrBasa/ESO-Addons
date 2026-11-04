@@ -19,5 +19,8 @@ venv/
 .env
 .env.*
 
+# Release packaging output
+dist/
+
 # JetBrains (optional local)
 .idea/

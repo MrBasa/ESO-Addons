@@ -7,11 +7,42 @@ local LLC_LWC_MASTER = "DolgubonsLazyWritCreatorMaster"
 
 --- Optional line sink (BasaTools). Chat always still goes to CHAT_ROUTER.
 local outputSink = nil
+local logger = nil
 
 local ownLLC = nil
 local writStationByName = nil
 local MarkComplete
 local KickImprove
+
+local function GetLogger()
+    if logger then
+        return logger
+    end
+    local lib = rawget(_G, "LibDebugLogger")
+    if type(lib) == "function" then
+        logger = lib(ADDON_NAME)
+    elseif type(lib) == "table" and type(lib.Create) == "function" then
+        logger = lib.Create(ADDON_NAME)
+    else
+        logger = {
+            Debug = function() end,
+            Info = function() end,
+            Warn = function(_, msg)
+                if type(d) == "function" then
+                    d(ADDON_NAME .. ": " .. tostring(msg))
+                end
+            end,
+            Error = function(_, msg)
+                if type(d) == "function" then
+                    d(ADDON_NAME .. " ERROR: " .. tostring(msg))
+                end
+            end,
+        }
+    end
+    return logger
+end
+
+WritMatch.GetLogger = GetLogger
 
 local function StationLabel(station)
     local name = GetString("SI_TRADESKILLTYPE", station)
@@ -949,6 +980,7 @@ local function OnAddOnLoaded(_, name)
     EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_CRAFT_COMPLETED, function()
         KickImprove()
     end)
+    GetLogger():Info("loaded")
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddOnLoaded)

@@ -99,4 +99,3 @@ VotansFisherman,/vf /vfexport /vfimport,,no,,no,0,9,1,data/addon_summaries/Votan
 VotansImprovedLocations,,,no,,no,0,8,2,data/addon_summaries/VotansImprovedLocations.txt
 VotansMiniMap,/reloadui,,no,EVENT_ALL_GUI_SCREENS_RESIZED,yes,0,11,2,data/addon_summaries/VotansMiniMap.txt
 WritWorthy,/writworthy,,no,EVENT_ADD_ON_LOADED EVENT_CHATTER_BEGIN EVENT_QUEST_ADDED EVENT_QUEST_COMPLETE_DIALOG EVENT_QUEST_OFFERED event_code event_id,yes,1,26,2,data/addon_summaries/WritWorthy.txt
-LootLogCustom,,,yes,EVENT_ADD_ON_LOADED EVENT_CHAT_MESSAGE_CHANNEL EVENT_COLLECTIBLES_UNLOCK_STATE_CHANGED EVENT_INVENTORY_SINGLE_SLOT_UPDATE EVENT_ITEM_SET_COLLECTIONS_UPDATED EVENT_ITEM_SET_COLLECTION_UPDATED EVENT_LOOT_RECEIVED EVENT_MONEY_UPDATE EVENT_PLAYER_ACTIVATED,yes,2,25,4,data/addon_summaries/LootLogCustom.txt

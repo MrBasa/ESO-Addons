@@ -85,17 +85,11 @@ After `/libscan` or `/libscanexport` in-game, copy `LibScannerSavedVars.lastExpo
 
 ---
 
-## 4. LootLogCustom (archived)
-
-Repo folder: `LootLogCustom/` is an **archive** of ILikeMoneyEdition v02 (official Loot Log 4.8.3.1 plus gold/price columns). It is **not** deployed (`SKIP_NAMES` in `scripts/deploy_steam_eso_addons.sh`). Gold history, LibPrice totals, hireling mail, and daily-writ tracking live in **BasaTools Tweaks / Daily Rewards**. Keep Minion-updated official **LootLog**. Do not rebase this fork.
-
----
-
-## 5. Minion vs live AddOns (path audit)
+## 4. Minion vs live AddOns (path audit)
 
 See session summary / README. Source of truth: `~/Games/ESO/live/AddOns` (symlink target of Steam Proton `compatdata/306130/.../live`). Minion Flatpak `ESO-1` `addon-path` already points at the Steam path. Main sync issue: **Minion detection looks for `FolderName.txt`**, while **57 add-ons only ship `FolderName.addon`** — Minion still tracks most by UID after install, but re-scan logs “Toc not found” and omits folders it never registered (e.g. AwesomeGuildStore, BeamMeUp, … until reinstalled).
 
-## 6. LibScanner unused libs (2026-10-18 in-game)
+## 5. LibScanner unused libs (2026-10-18 in-game)
 
 Runtime scan: **no broken required deps**, **no missing Lib\* optional-only folders**.
 

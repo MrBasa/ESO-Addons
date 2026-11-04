@@ -13,6 +13,7 @@ local latestUnusedLibs = {}
 local latestBrokenDeps = {}
 local lastManifestReadCount = 0
 local SetupRow
+local logger = nil
 
 --- Optional line sink (BasaTools). Status/summary go to the sink; lists render in the host UI.
 local outputSink = nil
@@ -24,6 +25,36 @@ local host = {
     show = nil,
     versionsTypeReady = false,
 }
+
+local function GetLogger()
+    if logger then
+        return logger
+    end
+    local lib = rawget(_G, "LibDebugLogger")
+    if type(lib) == "function" then
+        logger = lib(ADDON_NAME)
+    elseif type(lib) == "table" and type(lib.Create) == "function" then
+        logger = lib.Create(ADDON_NAME)
+    else
+        logger = {
+            Debug = function() end,
+            Info = function() end,
+            Warn = function(_, msg)
+                if type(d) == "function" then
+                    d(ADDON_NAME .. ": " .. tostring(msg))
+                end
+            end,
+            Error = function(_, msg)
+                if type(d) == "function" then
+                    d(ADDON_NAME .. " ERROR: " .. tostring(msg))
+                end
+            end,
+        }
+    end
+    return logger
+end
+
+LibScanner.GetLogger = GetLogger
 
 function LibScanner.SetOutputSink(fn)
     if fn == nil or type(fn) == "function" then
@@ -333,6 +364,7 @@ local function AddDebugMessage(message)
     if not LibScannerSavedVars or not LibScannerSavedVars.showDebug then
         return
     end
+    GetLogger():Debug(tostring(message))
     if type(d) == "function" then
         d("[LibScanner] " .. tostring(message))
     end
@@ -949,6 +981,8 @@ local function Initialize()
     SLASH_COMMANDS["/libscandebug"] = function()
         LibScanner.Run("debug")
     end
+
+    GetLogger():Info("loaded")
 end
 
 -- Wait for the addon to load before initializing

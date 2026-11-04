@@ -234,7 +234,7 @@ def collect_embedded_libs(addons_root: Path, top_name: str) -> list[str]:
 
 
 def append_repo_only_addons(repo: Path, addons_root: Path, rows: list[dict[str, str]], seen_folders: set[str]) -> None:
-    """Add rows for repo add-on folders not yet deployed into live/AddOns (e.g. LootLogCustom)."""
+    """Add rows for repo add-on folders not yet deployed into live/AddOns (not yet under live/AddOns)."""
     if not repo.is_dir():
         return
     for entry in sorted(repo.iterdir()):

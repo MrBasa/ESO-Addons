@@ -26,6 +26,21 @@
             }
         },
         {
+            "label": "Package: BasaTools suite",
+            "detail": "Build dist/BasaToolsSuite-v*.zip for GitHub Releases dry-run",
+            "type": "process",
+            "command": "${workspaceFolder}/scripts/package_basatools_suite.sh",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
             "label": "update:eso-api",
             "type": "shell",
             "command": "${workspaceFolder}/scripts/update_eso_api.sh",
