@@ -1,11 +1,18 @@
 ## Title: MatLog
 ## Author: mrbasa
-## Version: 1.0.0
-## AddOnVersion: 10000
+## Version: 1.1.0
+## AddOnVersion: 11000
 ## APIVersion: 101050
 ## Description: Track gathered materials, surveys, and master writs (hosted in BasaTools).
+## DependsOn: BasaTools LibDataEncode
 ## OptionalDependsOn: LibPrice DolgubonsLazyWritCreator LibDebugLogger
 ## SavedVariables: MatLogSaved
 
 MatLog.xml
+MatLog_Const.lua
+MatLog_Data.lua
+MatLog_Classify.lua
+MatLog_Mail.lua
+MatLog_Track.lua
+MatLog_UI.lua
 MatLog.lua

@@ -311,39 +311,8 @@ function Tweaks.ApplyOverlay()
     TryHookInventoryLists()
 end
 
-local boundChecks = {}
-
 local function BindCheck(control, label, tooltip, getFn, setFn)
-    if not control then
-        return
-    end
-    if not boundChecks[control] then
-        ZO_CheckButton_SetLabelText(control, label)
-        ZO_CheckButton_SetToggleFunction(control, function(button, checked)
-            local on = checked
-            if on == nil then
-                on = ZO_CheckButton_IsChecked(control)
-            end
-            setFn(on and true or false)
-        end)
-        if tooltip then
-            local tipLabel = control.label or Child(control, "Label")
-            if tipLabel and tipLabel.SetHandler then
-                tipLabel:SetHandler("OnMouseEnter", function()
-                    ZO_Tooltips_ShowTextTooltip(tipLabel, TOP, tooltip)
-                end)
-                tipLabel:SetHandler("OnMouseExit", function()
-                    ZO_Tooltips_HideTextTooltip()
-                end)
-            end
-        end
-        boundChecks[control] = true
-    end
-    if getFn() then
-        ZO_CheckButton_SetChecked(control)
-    else
-        ZO_CheckButton_SetUnchecked(control)
-    end
+    BasaTools.BindCheck(control, label, tooltip, getFn, setFn)
 end
 
 local function OverlayTooltip()

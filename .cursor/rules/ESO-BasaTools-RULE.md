@@ -12,7 +12,8 @@ Target runtime: per [`BasaTools/BasaTools.txt`](../../BasaTools/BasaTools.txt) (
 
 - Slash: `/basatools` toggles one window. Manifest folder name must match (`BasaTools/BasaTools.txt`).
 - Tabs register with `BasaTools.RegisterTab({ id, title, texture, tooltip, panelTemplate, usesOutput, fillPanel, available, buildPanel, onInit, onShown, onHelp })`. Shell XML is chrome only; each tab is a Lua module plus a virtual panel template.
-- Tool tabs (WritMatch, LibScanner, MatLog): `OptionalDependsOn`; `available()` is false if that add-on is not loaded — the tab is not created.
+- Tool tabs (WritMatch, LibScanner, MatLog): those add-ons **`DependsOn: BasaTools`**. Do **not** list them in BasaTools `OptionalDependsOn` (circular load). Tabs use `available()`; omitted when the tool is not loaded.
+- Data migrations: use `BasaTools.NotifyMigration` — see [`ESO-migrations-RULE.md`](ESO-migrations-RULE.md).
 - Native tab (Tweaks) always registers. Do not invent a fake global with `.Run` for it.
 - **Tabs** sit on a **second row** under the title (not beside it). Virtual `BasaToolsTab`: game `Texture` plus `ZoFontHeader3` label, width from `GetStringWidth` of the full title — never measure a clipped label. Selected = `INTERFACE_TEXT_COLOR_SELECTED` and full-bright icon; idle = contrast + dimmed icon. Do **not** use `ZO_LabelButtonBar` / `ZO_MenuBar` here without `normal`/`pressed`/`highlight` DDS — missing textures render as **white squares**. Tweaks/HUD use custom `BasaTools/textures/hud.dds`; MatLog uses `inventory_tabIcon_crafting_up.dds`.
 - Header rule is a **`Texture` inheriting `ZO_HorizontalDivider`** under the tab row (full window width). Do **not** use `ZO_WideHorizontalDivider` plus `SetHeight` — that clips the 9-slice. Close is a 32px `ZO_CloseButton` plus a 44px invisible `CloseHit` pad on the title row only.
@@ -27,7 +28,7 @@ Target runtime: per [`BasaTools/BasaTools.txt`](../../BasaTools/BasaTools.txt) (
 - **Master-writ g/v overlay:** extra `CT_LABEL` on inventory rows (`WritWorthy.GetMatCost` / `ToVoucherCount`). Do **not** rewrite `SellPrice` / `SellPriceText`. No-op if WritWorthy is not loaded.
 - **Granny's Eel Pie writ support:** Tweaks checkbox injects `FOODDRINK_TO_RECIPE_ITEM_ID[225205] = 225208` into WritWorthy when missing, and seeds `FALLBACK_PRICE` / `LINK` for Red Lichen (`225210`). Do not fork WritWorthy or Lazy Writ; Lazy Writ already uses `GetRecipeInfoFromItemId`.
 - **HUD icon:** movable `TopLevelControl` + `ZO_SimpleSceneFragment` on `HUD_SCENE` / `HUD_UI_SCENE`; **no backdrop**. Texture is `BasaTools/textures/hud.dds` (custom hammer roundel). Left-click = `BasaTools.Toggle()`. Persist `iconPos` in SavedVars.
-- **MatLog:** separate add-on [`MatLog/`](../../MatLog/); account-wide `MatLogSaved`. Keyed by ESO daily-reset timestamp, per character; prune after **3 days**. Track gathered materials, survey reports, and master writs. Each row stores `source`: **Writ** / **Hireling** / **World**. Hosted in BasaTools via `OptionalDependsOn` + thin bridge. LWC coffer / hireling-mail / craft-bag behaviour unchanged from the former in-shell module.
+- **MatLog:** separate add-on [`MatLog/`](../../MatLog/); account-wide `MatLogSaved` (`matlogEncoded` via LibDataEncode). Compact in-memory rows keyed `w|h|o:itemId` with `{ c, k }`; prune after **3 days**. Hosted in BasaTools via thin bridge + `available()`.
 
 ## Notes
 

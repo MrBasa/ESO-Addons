@@ -3,7 +3,6 @@ local ADDON_NAME = "BasaTools"
 BasaTools = BasaTools or {}
 
 local saved = nil
-local logger = nil
 local registeredTabs = {}
 local tabsBuilt = false
 local outputLines = {}
@@ -44,41 +43,12 @@ local function RGB(c)
 end
 
 local function Child(parent, name)
-    if parent and parent.GetNamedChild then
-        return parent:GetNamedChild(name)
-    end
-    return nil
+    return BasaTools.Child(parent, name)
 end
 
 local function GetLogger()
-    if logger then
-        return logger
-    end
-    local lib = rawget(_G, "LibDebugLogger")
-    if type(lib) == "function" then
-        logger = lib(ADDON_NAME)
-    elseif type(lib) == "table" and type(lib.Create) == "function" then
-        logger = lib.Create(ADDON_NAME)
-    else
-        logger = {
-            Debug = function() end,
-            Info = function() end,
-            Warn = function(_, msg)
-                if type(d) == "function" then
-                    d(ADDON_NAME .. ": " .. tostring(msg))
-                end
-            end,
-            Error = function(_, msg)
-                if type(d) == "function" then
-                    d(ADDON_NAME .. " ERROR: " .. tostring(msg))
-                end
-            end,
-        }
-    end
-    return logger
+    return BasaTools.GetLogger(ADDON_NAME)
 end
-
-BasaTools.GetLogger = GetLogger
 
 local function ChatSystem(msg)
     if CHAT_ROUTER and type(CHAT_ROUTER.AddSystemMessage) == "function" then
@@ -110,6 +80,9 @@ local function ReportMissingOptionals()
     end
     if type(rawget(_G, "LibPrice")) ~= "table" then
         note("LibPrice", "MatLog gold blank")
+    end
+    if type(rawget(_G, "LibDataEncode")) ~= "table" then
+        note("LibDataEncode", "required for MatLog")
     end
     if type(rawget(_G, "WritCreater")) ~= "table" then
         note("DolgubonsLazyWritCreator", "MatLog writ-coffer names limited")
@@ -186,43 +159,11 @@ function BasaTools.GetWindow()
     return GetWindow()
 end
 
-function BasaTools.Child(parent, name)
-    return Child(parent, name)
-end
-
 --- Convert |H…|hName|h item links to plain names, then strip leftover pipe markup.
 --- Color is re-applied with |c via ColorizeLine for the selectable EditBox
 --- (ALLOW_MARKUP_TYPE_COLOR_ONLY). Help labels use the plain string + SetColor.
 local function SanitizeForPanel(text)
-    if text == nil then
-        return ""
-    end
-    local s = tostring(text)
-    s = string.gsub(s, "(|H.-|h.-|h)", function(link)
-        if type(GetItemLinkName) == "function" then
-            local name = GetItemLinkName(link)
-            if type(name) == "string" and name ~= "" then
-                return name
-            end
-        end
-        local inner = string.match(link, "|h(.-)|h")
-        if inner and inner ~= "" then
-            return inner
-        end
-        return "[item]"
-    end)
-    s = string.gsub(s, "|c%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "|C%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "|r", "")
-    s = string.gsub(s, "|R", "")
-    s = string.gsub(s, "/c%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "/C%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "/r", "")
-    s = string.gsub(s, "/R", "")
-    s = string.gsub(s, "|", " ")
-    s = string.gsub(s, "%[", "(")
-    s = string.gsub(s, "%]", ")")
-    return s
+    return BasaTools.SanitizeMarkup(text, { stripItemLinks = true, editBoxStrict = true })
 end
 
 local function InterfaceRGB(textColor, fallback)
@@ -266,27 +207,8 @@ local function InferColor(text)
     return InterfaceRGB(INTERFACE_TEXT_COLOR_NORMAL, { 0.9, 0.9, 0.85 })
 end
 
-local function ColorByte(x)
-    local n = math.floor((tonumber(x) or 1) * 255 + 0.5)
-    if n < 0 then
-        n = 0
-    elseif n > 255 then
-        n = 255
-    end
-    return n
-end
-
 local function ColorizeLine(text, r, g, b)
-    if type(text) ~= "string" or text == "" then
-        return text or ""
-    end
-    if ZO_ColorDef and ZO_ColorDef.New then
-        local def = ZO_ColorDef:New(r, g, b, 1)
-        if def and def.Colorize then
-            return def:Colorize(text)
-        end
-    end
-    return string.format("|cFF%02X%02X%02X%s|r", ColorByte(r), ColorByte(g), ColorByte(b), text)
+    return BasaTools.ColorizeLine(text, r, g, b)
 end
 
 local function ConfigureOutputEdit(edit)

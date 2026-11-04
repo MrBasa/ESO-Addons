@@ -13,7 +13,6 @@ local latestUnusedLibs = {}
 local latestBrokenDeps = {}
 local lastManifestReadCount = 0
 local SetupRow
-local logger = nil
 
 --- Optional line sink (BasaTools). Status/summary go to the sink; lists render in the host UI.
 local outputSink = nil
@@ -27,31 +26,7 @@ local host = {
 }
 
 local function GetLogger()
-    if logger then
-        return logger
-    end
-    local lib = rawget(_G, "LibDebugLogger")
-    if type(lib) == "function" then
-        logger = lib(ADDON_NAME)
-    elseif type(lib) == "table" and type(lib.Create) == "function" then
-        logger = lib.Create(ADDON_NAME)
-    else
-        logger = {
-            Debug = function() end,
-            Info = function() end,
-            Warn = function(_, msg)
-                if type(d) == "function" then
-                    d(ADDON_NAME .. ": " .. tostring(msg))
-                end
-            end,
-            Error = function(_, msg)
-                if type(d) == "function" then
-                    d(ADDON_NAME .. " ERROR: " .. tostring(msg))
-                end
-            end,
-        }
-    end
-    return logger
+    return BasaTools.GetLogger(ADDON_NAME)
 end
 
 LibScanner.GetLogger = GetLogger
@@ -143,65 +118,16 @@ local function ReadManifestDependsOptional(addOnManager, i, folderName)
 end
 
 local function SanitizeForPanelText(text)
-    if text == nil then
-        return ""
-    end
-    local s = tostring(text)
-    s = string.gsub(s, "|c%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "|C%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "|r", "")
-    s = string.gsub(s, "|R", "")
-    s = string.gsub(s, "|", " ")
-    return s
-end
-
-local function ColorByte(x)
-    local n = math.floor((tonumber(x) or 1) * 255 + 0.5)
-    if n < 0 then
-        n = 0
-    elseif n > 255 then
-        n = 255
-    end
-    return n
+    return BasaTools.SanitizeMarkup(text, { stripItemLinks = false, editBoxStrict = false })
 end
 
 local function ColorizeLine(text, r, g, b)
-    if type(text) ~= "string" or text == "" then
-        return text or ""
-    end
-    if ZO_ColorDef and ZO_ColorDef.New then
-        local def = ZO_ColorDef:New(r, g, b, 1)
-        if def and def.Colorize then
-            return def:Colorize(text)
-        end
-    end
-    return string.format("|cFF%02X%02X%02X%s|r", ColorByte(r), ColorByte(g), ColorByte(b), text)
+    return BasaTools.ColorizeLine(text, r, g, b)
 end
 
 -- ZO EditBox rich text: `|c…|r`, `|H…|h`, `[…]` etc. can truncate or eat the rest of the string.
--- Converting `|` to `/` is NOT safe: `/c9999FF` is still treated as a color token.
 local function SanitizeForEditBox(text)
-    if text == nil then
-        return ""
-    end
-    local s = tostring(text)
-    -- Strip color resets and color starts (pipe and common mangled forms).
-    s = string.gsub(s, "|c%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "|C%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "|r", "")
-    s = string.gsub(s, "|R", "")
-    s = string.gsub(s, "/c%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "/C%x%x%x%x%x%x%x%x", "")
-    s = string.gsub(s, "/r", "")
-    s = string.gsub(s, "/R", "")
-    -- Remove any remaining pipe-driven markup (links, etc.).
-    s = string.gsub(s, "|", " ")
-    -- Brackets can start link-style segments in some controls.
-    s = string.gsub(s, "%[", "(")
-    s = string.gsub(s, "%]", ")")
-    s = string.gsub(s, "^%s+", "")
-    s = string.gsub(s, "%s+$", "")
-    return s
+    return BasaTools.SanitizeMarkup(text, { stripItemLinks = false, editBoxStrict = true })
 end
 
 local function GetVersionsList()

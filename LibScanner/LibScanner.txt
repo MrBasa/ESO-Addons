@@ -1,9 +1,10 @@
 ## Title: LibScanner
 ## Author: mrbasa
-## Version: 3.0.1
-## AddOnVersion: 30001
+## Version: 3.1.0
+## AddOnVersion: 31000
 ## APIVersion: 101050
 ## Description: Scans for missing/unused dependencies and shows addon status in BasaTools.
+## DependsOn: BasaTools
 ## OptionalDependsOn: LibDebugLogger
 ## SavedVariables: LibScannerSavedVars
 

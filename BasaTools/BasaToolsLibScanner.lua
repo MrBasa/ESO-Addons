@@ -37,29 +37,21 @@ local function BindDebugCheck(panel)
     if not control or not LibScanner then
         return
     end
-    local on = type(LibScanner.IsDebug) == "function" and LibScanner.IsDebug()
-    if on then
-        ZO_CheckButton_SetChecked(control)
-    else
-        ZO_CheckButton_SetUnchecked(control)
-    end
-    ZO_CheckButton_SetLabelText(control, "Debug")
-    ZO_CheckButton_SetToggleFunction(control, function()
-        if type(LibScanner.SetDebug) == "function" then
-            LibScanner.SetDebug(ZO_CheckButton_IsChecked(control))
-        elseif type(LibScanner.Run) == "function" then
-            LibScanner.Run("debug")
+    BasaTools.BindCheck(
+        control,
+        "Debug",
+        "Verbose LibScanner chat. Default is off. Same as /libscandebug.",
+        function()
+            return type(LibScanner.IsDebug) == "function" and LibScanner.IsDebug()
+        end,
+        function(checked)
+            if type(LibScanner.SetDebug) == "function" then
+                LibScanner.SetDebug(checked and true or false)
+            elseif type(LibScanner.Run) == "function" then
+                LibScanner.Run("debug")
+            end
         end
-    end)
-    local label = control.label or Child(control, "Label")
-    if label and label.SetHandler then
-        label:SetHandler("OnMouseEnter", function()
-            ZO_Tooltips_ShowTextTooltip(label, TOP, "Verbose LibScanner chat. Default is off. Same as /libscandebug.")
-        end)
-        label:SetHandler("OnMouseExit", function()
-            ZO_Tooltips_HideTextTooltip()
-        end)
-    end
+    )
 end
 
 local function HostPanel(panel)

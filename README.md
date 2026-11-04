@@ -42,13 +42,15 @@ The game expects `AddonFolder/AddonFolder.txt` (or `.addon`) with the **same bas
 
 | Library | Needed for |
 |---------|------------|
+| **BasaTools** | **Required** by WritMatch, LibScanner, and MatLog (suite control panel + shared helpers) |
 | **LibLazyCrafting** | **Required** by WritMatch |
+| **LibDataEncode** | **Required** by MatLog (compact SavedVariables encode) |
 | **LibPrice** | MatLog gold columns (optional; values blank without it) |
 | **WritWorthy** | Tweaks gold-per-voucher overlay / Granny’s Eel Pie support (optional) |
 | **Dolgubon’s Lazy Writ Crafter** | Better MatLog writ-coffer detection (optional) |
 | **LibDebugLogger** | Structured logs / DebugLogViewer (optional; no chat nag if missing) |
 
-On first load, BasaTools prints a short chat summary if optional tools or libraries are missing.
+The suite zip still ships only the four BasaTools add-ons — install **LibLazyCrafting** and **LibDataEncode** (and optionals) via Minion. On first load, BasaTools prints a short chat summary if optional tools or libraries are missing.
 
 Official **Loot Log** from Minion remains the general loot journal; MatLog covers mats / surveys / master writs.
 
@@ -62,15 +64,15 @@ Settings (toggles, last tab, HUD position, window size) are **account-wide** via
 
 ### WritMatch
 
-Requires **LibLazyCrafting**. Optional: WritWorthy, Lazy Writ. Slash: `/writmatch`, `/writmatch crafts|queues|kick|orphans`.
+Requires **BasaTools** and **LibLazyCrafting**. Optional: WritWorthy, Lazy Writ. Slash: `/writmatch`, `/writmatch crafts|queues|kick|orphans`.
 
 ### LibScanner
 
-Slash: `/libscan`, `/libscanexport`, `/libscandebug`. Versions / Libraries UI lives in the BasaTools LibScanner tab when BasaTools is enabled.
+Requires **BasaTools**. Slash: `/libscan`, `/libscanexport`, `/libscandebug`. Versions / Libraries UI lives in the BasaTools LibScanner tab.
 
 ### MatLog
 
-Optional: LibPrice, Lazy Writ. Hosted as a BasaTools tab. SavedVariables: account-wide `MatLogSaved`.
+Requires **BasaTools** and **LibDataEncode**. Optional: LibPrice, Lazy Writ. Hosted as a BasaTools tab. SavedVariables: account-wide `MatLogSaved` (compact rows, LibDataEncode blob).
 
 ## Maintainer / local tooling
 
