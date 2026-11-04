@@ -2688,62 +2688,6 @@ EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, function(_, addo
     end
     EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
 
-    local function findLegacy(node, depth)
-        if depth > 6 or type(node) ~= "table" then
-            return nil
-        end
-        if type(node.matlog) == "table" then
-            return node
-        end
-        for _, child in pairs(node) do
-            local found = findLegacy(child, depth + 1)
-            if found then
-                return found
-            end
-        end
-        return nil
-    end
-
-    local function migrateFromBasaTools(dest)
-        if not dest or dest.migratedFromBasaTools then
-            return
-        end
-        local src = findLegacy(rawget(_G, "BasaToolsSaved"), 0)
-        if src then
-            local keys = {
-                "matlogEnabled",
-                "matlogView",
-                "matlogPriceSource",
-                "matlogDayKey",
-                "matlogChar",
-                "matlogCategory",
-                "matlogSortKey",
-                "matlogSortAsc",
-                "matlog",
-            }
-            for i = 1, #keys do
-                local key = keys[i]
-                if dest[key] == nil and src[key] ~= nil then
-                    dest[key] = src[key]
-                elseif key == "matlog" and type(src.matlog) == "table" and (type(dest.matlog) ~= "table" or next(dest.matlog) == nil) then
-                    dest.matlog = src.matlog
-                end
-            end
-            if type(src.matlog) == "table" then
-                src.matlog = {}
-            end
-            src.matlogEnabled = nil
-            src.matlogView = nil
-            src.matlogPriceSource = nil
-            src.matlogDayKey = nil
-            src.matlogChar = nil
-            src.matlogCategory = nil
-            src.matlogSortKey = nil
-            src.matlogSortAsc = nil
-        end
-        dest.migratedFromBasaTools = true
-    end
-
     local defaults = {
         matlogEnabled = true,
         matlogView = "full",
@@ -2754,7 +2698,6 @@ EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, function(_, addo
         matlogSortKey = "item",
         matlogSortAsc = true,
         matlog = {},
-        migratedFromBasaTools = false,
     }
     local profile = nil
     if type(GetWorldName) == "function" then
@@ -2771,7 +2714,6 @@ EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, function(_, addo
         end
     end
     saved = ZO_SavedVars:NewAccountWide("MatLogSaved", SV_VERSION, nil, defaults, profile, displayName)
-    migrateFromBasaTools(saved)
     MatLog.Initialize(saved)
     MatLog.GetLogger():Info("loaded")
 end)

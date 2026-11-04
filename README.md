@@ -70,7 +70,7 @@ Slash: `/libscan`, `/libscanexport`, `/libscandebug`. Versions / Libraries UI li
 
 ### MatLog
 
-Optional: LibPrice, Lazy Writ. Hosted as a BasaTools tab. SavedVariables: `MatLogSaved` (one-time migrate from legacy `BasaToolsSaved.matlog*` keys).
+Optional: LibPrice, Lazy Writ. Hosted as a BasaTools tab. SavedVariables: account-wide `MatLogSaved`.
 
 ## Maintainer / local tooling
 
@@ -82,20 +82,20 @@ Repository layout beyond the four add-ons:
 - [`.vscode/`](.vscode/) — editor tasks
 - [`.cursor/rules/`](.cursor/rules/) — Cursor rules
 
-### Package a release zip (dry-run)
+### Versions & release
 
-```bash
-scripts/package_basatools_suite.sh 1.3.26
-# → dist/BasaToolsSuite-v1.3.26.zip
-```
+There is no central version file. Each add-on has its own `## Version` and integer `## AddOnVersion` in `<Addon>/<Addon>.txt`.
 
-Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml) and attaches that zip to the GitHub Release.
+1. Bump **only** add-ons that changed. Keep `## AddOnVersion` monotonic (ESO uses it for update detection).
+2. Suite zip name comes from the CLI arg, `v*` git tag, or fallback `BasaTools` `## Version` — see [`scripts/package_basatools_suite.sh`](scripts/package_basatools_suite.sh).
+3. Local dry-run: `scripts/package_basatools_suite.sh X.Y.Z` → `dist/BasaToolsSuite-vX.Y.Z.zip`.
+4. Tag and push `vX.Y.Z` to run [`.github/workflows/release.yml`](.github/workflows/release.yml) and attach the zip to the GitHub Release.
 
 VS Code / Cursor task: **Package: BasaTools suite**.
 
 ### Steam deploy (this workstation)
 
-[`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-on folders into the Steam Proton `AddOns` tree. Override with `ESO_ADDONS_DIR`. Task: **Deploy: Steam ESO addons**.
+[`scripts/deploy_steam_eso_addons.sh`](scripts/deploy_steam_eso_addons.sh) copies repo add-on folders into the Steam Proton `AddOns` tree (`cp -a`; does **not** delete stale files by default). Override with `ESO_ADDONS_DIR`. To remove orphans under those deployed folders after copy: `--prune` or `DEPLOY_PRUNE=1`. Task: **Deploy: Steam ESO addons**.
 
 ### Add-on catalog / health
 
